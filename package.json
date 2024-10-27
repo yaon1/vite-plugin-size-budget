@@ -1,0 +1,40 @@
+{
+  "name": "vite-plugin-size-budget",
+  "version": "0.1.0",
+  "description": "Fail Vite builds that exceed gzip/brotli size budgets, with diffs against a baseline and a GitHub Actions summary",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "bundle-size",
+    "performance-budget"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "vite": ">=5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/picomatch": "^4.0.3",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.4",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "picomatch": "^4.0.2"
+  }
+}
