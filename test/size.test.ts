@@ -1,0 +1,25 @@
+import { describe, expect, it } from 'vitest'
+import { measure } from '../src/measure.js'
+import { formatBytes, parseSize } from '../src/size.js'
+
+describe('parseSize', () => {
+  it.each([
+    ['150 kB', 150_000],
+    ['1.5MiB', 1_572_864],
+    ['2048', 2048],
+    [512, 512],
+  ])('%s → %d', (input, bytes) => expect(parseSize(input)).toBe(bytes))
+
+  it('rejects garbage', () => expect(() => parseSize('big')).toThrow(/Invalid size/))
+})
+
+it('formats bytes', () => {
+  expect([formatBytes(999), formatBytes(-1500), formatBytes(2_500_000)]).toEqual(['999 B', '-1.50 kB', '2.50 MB'])
+})
+
+it('measures compressed sizes', () => {
+  const size = measure('a.js', 'x'.repeat(10_000))
+  expect(size.none).toBe(10_000)
+  expect(size.gzip).toBeLessThan(100)
+  expect(size.brotli).toBeLessThan(size.gzip)
+})
