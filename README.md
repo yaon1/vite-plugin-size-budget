@@ -1,6 +1,6 @@
 # vite-plugin-size-budget
 
-Keep your bundle honest. Fails the Vite build when gzip/brotli sizes exceed a budget, writes a JSON report and posts a diff table to the GitHub Actions job summary.
+**Не даёт бандлу незаметно разрастись.** Плагин проверяет gzip/brotli-размер файлов после сборки и роняет билд в CI, если превышен бюджет. В PR, в саммари GitHub Actions, появляется таблица: какой бюджет, сколько весит, на сколько выросло по сравнению с `main` и какие файлы изменились сильнее всего. Лишние 200 кБ из-за случайного `import _ from 'lodash'` будут видны сразу на ревью, а не после релиза.
 
 ```
 vite v6 building for production...
@@ -9,11 +9,7 @@ vite v6 building for production...
 error during build: Size budget exceeded: assets/*.css
 ```
 
-## Install
-
-```bash
-npm i -D vite-plugin-size-budget
-```
+## Пример использования
 
 ```ts
 // vite.config.ts
@@ -23,42 +19,49 @@ export default defineConfig({
   plugins: [
     sizeBudget({
       budgets: [
-        { path: 'assets/index-*.js', max: '80 kB' },            // entry chunk
-        { path: 'assets/*.js', max: '250 kB' },                 // all JS
+        { path: 'assets/index-*.js', max: '80 kB' },             // входной чанк
+        { path: 'assets/*.js', max: '250 kB' },                  // весь JS
         { path: 'assets/*.css', max: '20 kB', compression: 'brotli' },
       ],
+      baseline: 'baseline/size-report.json',
     }),
   ],
 })
 ```
 
-## Options
-
-| Option | Default | |
-|---|---|---|
-| `budgets` | — | `{ path: glob, max: '150 kB' \| bytes, compression? }[]`; the sum of matched files is checked |
-| `compression` | `'gzip'` | `'none' \| 'gzip' \| 'brotli'` |
-| `failOnExceed` | `true` in CI | Otherwise only warns |
-| `reportFile` | `size-report.json` | JSON report path, `false` to disable |
-| `baseline` | — | Previous report to diff against |
-| `githubSummary` | `true` | Append a markdown table to `$GITHUB_STEP_SUMMARY` |
-
-Sizes accept `B`, `kB`, `KiB`, `MB`, `MiB`.
-
-## Diff against main in CI
+Сравнение с `main` в GitHub Actions:
 
 ```yaml
 - uses: actions/download-artifact@v4
   with: { name: size-report, path: baseline }
-  continue-on-error: true   # first run has no baseline
-- run: npm run build        # with baseline: 'baseline/size-report.json'
+  continue-on-error: true   # при первом запуске baseline ещё нет
+- run: npm run build
 - uses: actions/upload-artifact@v4
   if: github.ref == 'refs/heads/main'
   with: { name: size-report, path: size-report.json }
 ```
 
-The job summary then shows each budget's change and the ten files that changed most. Content hashes are stripped so `index-B3Np.js` matches `index-Xy9z.js`.
+Хеши в именах файлов отбрасываются, поэтому `index-B3Np.js` сравнивается с `index-Xy9z.js`.
 
-## License
+## Установка
+
+```bash
+npm i -D vite-plugin-size-budget
+```
+
+## Опции
+
+| Опция | По умолчанию | |
+|---|---|---|
+| `budgets` | — | `{ path: glob, max: '150 kB' \| байты, compression? }[]`; проверяется сумма подходящих файлов |
+| `compression` | `'gzip'` | `'none' \| 'gzip' \| 'brotli'` |
+| `failOnExceed` | `true` в CI | Иначе только предупреждение |
+| `reportFile` | `size-report.json` | Путь JSON-отчёта, `false` отключает его |
+| `baseline` | — | Предыдущий отчёт для сравнения |
+| `githubSummary` | `true` | Писать таблицу в `$GITHUB_STEP_SUMMARY` |
+
+Размеры понимают единицы `B`, `kB`, `KiB`, `MB`, `MiB`.
+
+## Лицензия
 
 MIT
