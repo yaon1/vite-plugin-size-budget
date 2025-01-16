@@ -8,7 +8,7 @@ it('strips Vite content hashes', () => {
 })
 
 const file = (file: string, gzip: number) => ({ file, none: gzip * 3, gzip, brotli: gzip - 1 })
-const budget = (total: number) => ({ path: 'assets/*.js', compression: 'gzip' as const, limit: 50_000, total, files: [], ok: total <= 50_000 })
+const budget = (total: number) => ({ path: 'assets/*.js', compression: 'gzip' as const, limit: 50_000, total, files: [], ok: total <= 50_000, oversized: [] })
 
 it('renders budgets with deltas and changed files', () => {
   const baseline: Report = { version: 1, compression: 'gzip', files: [file('assets/index-AAAAAAAA.js', 40_000)], budgets: [budget(40_000)] }

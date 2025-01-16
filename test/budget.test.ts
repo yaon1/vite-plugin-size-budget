@@ -25,3 +25,8 @@ it('sums matched files per budget with its compression', () => {
 it('treats a budget with no matches as passing', () => {
   expect(evaluate(sizes, [{ path: '*.wasm', max: 1 }], 'gzip')[0]).toMatchObject({ total: 0, ok: true, files: [] })
 })
+
+it('flags single files over maxFile even when the total fits', () => {
+  const [result] = evaluate(sizes, [{ path: 'assets/*.js', max: '1 MB', maxFile: '50 kB' }], 'gzip')
+  expect(result).toMatchObject({ ok: false, oversized: [{ file: 'assets/vendor-def.js', size: 90_000 }] })
+})
