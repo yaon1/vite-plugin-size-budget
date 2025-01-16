@@ -68,7 +68,9 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       for (const b of report.budgets) {
         const line = `${b.path} (${b.compression}): ${formatBytes(b.total)} / ${formatBytes(b.limit)}`
         if (b.ok) config.logger.info(`  ✓ ${line}`)
-        else config.logger.warn(`  ✗ ${line} — over by ${formatBytes(b.total - b.limit)}`)
+        else if (b.total > b.limit) config.logger.warn(`  ✗ ${line} — over by ${formatBytes(b.total - b.limit)}`)
+        else config.logger.warn(`  ✗ ${line}`)
+        for (const f of b.oversized) config.logger.warn(`      ${f.file} is ${formatBytes(f.size)}, above the per-file limit`)
       }
 
       const failed = report.budgets.filter((b) => !b.ok)

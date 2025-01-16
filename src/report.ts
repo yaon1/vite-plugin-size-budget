@@ -37,6 +37,9 @@ export function toMarkdown(report: Report, baseline?: Report): string {
     ),
   ]
 
+  const oversized = report.budgets.flatMap((b) => b.oversized.map((f) => `- \`${stableName(f.file)}\` is ${formatBytes(f.size)}, above the per-file limit of \`${b.path}\``))
+  if (oversized.length > 0) lines.push('', ...oversized)
+
   if (baseline) {
     const key = report.compression
     const before = new Map(baseline.files.map((f) => [stableName(f.file), f[key]]))
