@@ -1,0 +1,27 @@
+import { expect, it } from 'vitest'
+import { initialFiles, type OutputAssetLike, type OutputChunkLike } from '../src/graph.js'
+
+const chunk = (fileName: string, imports: string[] = [], css: string[] = [], isEntry = false): OutputChunkLike => ({
+  type: 'chunk',
+  fileName,
+  isEntry,
+  imports,
+  viteMetadata: { importedCss: new Set(css) },
+})
+const asset = (fileName: string): OutputAssetLike => ({ type: 'asset', fileName })
+
+it('follows static imports from entries and skips lazy chunks', () => {
+  const bundle = {
+    'index.js': chunk('index.js', ['vendor.js'], ['index.css'], true),
+    'vendor.js': chunk('vendor.js', ['shared.js']),
+    'shared.js': chunk('shared.js'),
+    'admin.js': chunk('admin.js', ['shared.js'], ['admin.css']), // reached only via import()
+    'index.css': asset('index.css'),
+    'admin.css': asset('admin.css'),
+  }
+  expect(initialFiles(bundle)).toEqual(['index.css', 'index.js', 'shared.js', 'vendor.js'])
+})
+
+it('handles cycles', () => {
+  expect(initialFiles({ 'a.js': chunk('a.js', ['b.js'], [], true), 'b.js': chunk('b.js', ['a.js']) })).toEqual(['a.js', 'b.js'])
+})
