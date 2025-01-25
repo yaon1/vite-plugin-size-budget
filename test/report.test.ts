@@ -37,3 +37,8 @@ it('renders budgets with deltas and changed files', () => {
     "
   `)
 })
+
+it('lists files over their per-file limit', () => {
+  const report: Report = { version: 1, compression: 'gzip', files: [], budgets: [{ ...budget(10), oversized: [{ file: 'assets/big-AAAAAAAA.js', size: 70_000 }] }] }
+  expect(toMarkdown(report)).toContain('- `assets/big.js` is 70.00 kB, above the per-file limit of `assets/*.js`')
+})
