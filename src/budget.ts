@@ -3,7 +3,10 @@ import type { Compression, FileSize } from './measure.js'
 import { parseSize } from './size.js'
 
 export interface Budget {
-  /** Glob matched against output file names, e.g. "assets/*.js". */
+  /**
+   * Glob matched against output file names, e.g. "assets/*.js", or "@initial" for
+   * everything downloaded before the app starts (entries + static imports + their CSS).
+   */
   path: string
   /** Limit for the sum of all matched files. */
   max: string | number
@@ -23,10 +26,15 @@ export interface BudgetResult {
   oversized: { file: string; size: number }[]
 }
 
-export function evaluate(sizes: readonly FileSize[], budgets: readonly Budget[], defaultCompression: Compression): BudgetResult[] {
+/** Named file groups that budgets can target with "@name". */
+export type Groups = Record<string, readonly string[]>
+
+export function evaluate(sizes: readonly FileSize[], budgets: readonly Budget[], defaultCompression: Compression, groups: Groups = {}): BudgetResult[] {
   return budgets.map((budget) => {
     const compression = budget.compression ?? defaultCompression
-    const isMatch = picomatch(budget.path, { dot: true })
+    const group = budget.path.startsWith('@') ? groups[budget.path.slice(1)] : undefined
+    if (budget.path.startsWith('@') && !group) throw new Error(`Unknown budget group "${budget.path}"`)
+    const isMatch = group ? (file: string) => group.includes(file) : picomatch(budget.path, { dot: true })
     const matched = sizes.filter((s) => isMatch(s.file))
     const total = matched.reduce((sum, s) => sum + s[compression], 0)
     const limit = parseSize(budget.max)

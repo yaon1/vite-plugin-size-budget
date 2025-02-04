@@ -30,3 +30,9 @@ it('flags single files over maxFile even when the total fits', () => {
   const [result] = evaluate(sizes, [{ path: 'assets/*.js', max: '1 MB', maxFile: '50 kB' }], 'gzip')
   expect(result).toMatchObject({ ok: false, oversized: [{ file: 'assets/vendor-def.js', size: 90_000 }] })
 })
+
+it('targets named groups like @initial', () => {
+  const [initial] = evaluate(sizes, [{ path: '@initial', max: '50 kB' }], 'gzip', { initial: ['assets/index-abc.js', 'assets/index-abc.css'] })
+  expect(initial).toMatchObject({ total: 45_000, ok: true, files: ['assets/index-abc.js', 'assets/index-abc.css'] })
+  expect(() => evaluate(sizes, [{ path: '@nope', max: 1 }], 'gzip')).toThrow(/Unknown budget group/)
+})
