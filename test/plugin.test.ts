@@ -35,3 +35,12 @@ it('fails the build when over budget', async () => {
 it('only warns when failOnExceed is false', async () => {
   await expect(run('100 B', false)).resolves.toBeDefined()
 })
+
+it('supports the @initial budget on a real build with a lazy chunk', async () => {
+  await writeFile(join(root, 'main.js'), "import('./lazy.js').then((m) => m.run()); console.log('main')")
+  await writeFile(join(root, 'lazy.js'), `export function run() { console.log(${JSON.stringify('x'.repeat(5000))}) }`)
+  await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@initial', max: '5 kB' }], reportFile: 'dist/size.json' })] })
+  const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
+  expect(report.budgets[0]?.files.some((f) => f.includes('lazy'))).toBe(false)
+  expect(report.budgets[0]?.files.length).toBeGreaterThan(0)
+})

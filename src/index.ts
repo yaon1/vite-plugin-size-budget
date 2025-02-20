@@ -2,6 +2,7 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import type { Plugin, ResolvedConfig } from 'vite'
 import { evaluate, type Budget } from './budget.js'
+import { initialFiles, type OutputAssetLike, type OutputChunkLike } from './graph.js'
 import { measure, type Compression } from './measure.js'
 import { toMarkdown, type Report } from './report.js'
 import { formatBytes } from './size.js'
@@ -53,7 +54,9 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       const sizes = Object.values(bundle)
         .filter((o) => !o.fileName.endsWith('.map'))
         .map((o) => measure(o.fileName, o.type === 'chunk' ? o.code : o.source))
-      const report: Report = { version: 1, compression, files: sizes, budgets: evaluate(sizes, options.budgets, compression) }
+      const report: Report = { version: 1, compression, files: sizes, budgets: evaluate(sizes, options.budgets, compression, {
+        initial: initialFiles(bundle as unknown as Record<string, OutputChunkLike | OutputAssetLike>),
+      }) }
       const baseline = options.baseline ? await readBaseline(resolve(config.root, options.baseline)) : undefined
 
       if (options.reportFile !== false) {
