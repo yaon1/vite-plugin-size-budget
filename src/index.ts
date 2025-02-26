@@ -17,6 +17,8 @@ export interface SizeBudgetOptions {
   reportFile?: string | false
   /** A previous JSON report to diff against (e.g. downloaded from the main branch). */
   baseline?: string
+  /** Fraction of a limit above which a passing budget is reported as a warning. Default: 0.9. */
+  warnAt?: number
   /** Append a markdown table to $GITHUB_STEP_SUMMARY when present. Default: true. */
   githubSummary?: boolean
 }
@@ -56,7 +58,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
         .map((o) => measure(o.fileName, o.type === 'chunk' ? o.code : o.source))
       const report: Report = { version: 1, compression, files: sizes, budgets: evaluate(sizes, options.budgets, compression, {
         initial: initialFiles(bundle as unknown as Record<string, OutputChunkLike | OutputAssetLike>),
-      }) }
+      }, options.warnAt ?? 0.9) }
       const baseline = options.baseline ? await readBaseline(resolve(config.root, options.baseline)) : undefined
 
       if (options.reportFile !== false) {
@@ -70,7 +72,8 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
 
       for (const b of report.budgets) {
         const line = `${b.path} (${b.compression}): ${formatBytes(b.total)} / ${formatBytes(b.limit)}`
-        if (b.ok) config.logger.info(`  ✓ ${line}`)
+        if (b.ok && b.warning) config.logger.warn(`  ! ${line} — ${Math.round((b.total / b.limit) * 100)}% of the budget`)
+        else if (b.ok) config.logger.info(`  ✓ ${line}`)
         else if (b.total > b.limit) config.logger.warn(`  ✗ ${line} — over by ${formatBytes(b.total - b.limit)}`)
         else config.logger.warn(`  ✗ ${line}`)
         for (const f of b.oversized) config.logger.warn(`      ${f.file} is ${formatBytes(f.size)}, above the per-file limit`)

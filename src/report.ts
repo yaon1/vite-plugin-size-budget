@@ -33,7 +33,7 @@ export function toMarkdown(report: Report, baseline?: Report): string {
       (b) =>
         `| \`${b.path}\` (${b.compression}) | ${formatBytes(b.total)} | ${formatBytes(b.limit)} | ${
           baseline ? delta(b.total, previousBudget.get(b.path)) : '—'
-        } | ${b.ok ? '✅' : '❌'} |`,
+        } | ${!b.ok ? '❌' : b.warning ? '⚠️' : '✅'} |`,
     ),
   ]
 
