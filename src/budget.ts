@@ -22,6 +22,8 @@ export interface BudgetResult {
   total: number
   files: string[]
   ok: boolean
+  /** Within the limit but above `warnAt` of it — worth a look before it breaks. */
+  warning: boolean
   /** Files that break `maxFile`, with their size. */
   oversized: { file: string; size: number }[]
 }
@@ -29,7 +31,13 @@ export interface BudgetResult {
 /** Named file groups that budgets can target with "@name". */
 export type Groups = Record<string, readonly string[]>
 
-export function evaluate(sizes: readonly FileSize[], budgets: readonly Budget[], defaultCompression: Compression, groups: Groups = {}): BudgetResult[] {
+export function evaluate(
+  sizes: readonly FileSize[],
+  budgets: readonly Budget[],
+  defaultCompression: Compression,
+  groups: Groups = {},
+  warnAt = 0.9,
+): BudgetResult[] {
   return budgets.map((budget) => {
     const compression = budget.compression ?? defaultCompression
     const group = budget.path.startsWith('@') ? groups[budget.path.slice(1)] : undefined
@@ -40,6 +48,6 @@ export function evaluate(sizes: readonly FileSize[], budgets: readonly Budget[],
     const limit = parseSize(budget.max)
     const fileLimit = budget.maxFile === undefined ? Infinity : parseSize(budget.maxFile)
     const oversized = matched.filter((s) => s[compression] > fileLimit).map((s) => ({ file: s.file, size: s[compression] }))
-    return { path: budget.path, compression, limit, total, files: matched.map((s) => s.file), ok: total <= limit && oversized.length === 0, oversized }
+    return { path: budget.path, compression, limit, total, files: matched.map((s) => s.file), ok: total <= limit && oversized.length === 0, warning: total <= limit && total > limit * warnAt, oversized }
   })
 }
