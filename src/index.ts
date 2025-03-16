@@ -2,6 +2,7 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import type { Plugin, ResolvedConfig } from 'vite'
 import { evaluate, type Budget } from './budget.js'
+import { duplicatePackages, topContributors } from './modules.js'
 import { initialFiles, type OutputAssetLike, type OutputChunkLike } from './graph.js'
 import { measure, type Compression } from './measure.js'
 import { toMarkdown, type Report } from './report.js'
@@ -59,6 +60,10 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       const report: Report = { version: 1, compression, files: sizes, budgets: evaluate(sizes, options.budgets, compression, {
         initial: initialFiles(bundle as unknown as Record<string, OutputChunkLike | OutputAssetLike>),
       }, options.warnAt ?? 0.9) }
+      const chunks = Object.values(bundle).filter((o) => o.type === 'chunk')
+      report.contributors = topContributors(chunks, config.root)
+      report.duplicates = duplicatePackages(chunks)
+      for (const d of report.duplicates) config.logger.warn(`  ⚠ ${d.name} is bundled ${d.paths.length} times: ${d.paths.join(', ')}`)
       const baseline = options.baseline ? await readBaseline(resolve(config.root, options.baseline)) : undefined
 
       if (options.reportFile !== false) {

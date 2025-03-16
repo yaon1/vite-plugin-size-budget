@@ -1,5 +1,6 @@
 import type { BudgetResult } from './budget.js'
 import type { Compression, FileSize } from './measure.js'
+import type { Contributor } from './modules.js'
 import { formatBytes } from './size.js'
 
 export interface Report {
@@ -7,6 +8,10 @@ export interface Report {
   compression: Compression
   files: FileSize[]
   budgets: BudgetResult[]
+  /** Largest packages and source files by minified size. */
+  contributors?: Contributor[]
+  /** Packages bundled from several install paths. */
+  duplicates?: { name: string; paths: string[] }[]
 }
 
 /** Strips Vite's content hash so files can be matched across builds: "index-B3NpPW9K.js" → "index.js". */
@@ -53,6 +58,16 @@ export function toMarkdown(report: Report, baseline?: Report): string {
       lines.push(...changed.map((f) => `| \`${f.name}\` | ${formatBytes(f.size)} | ${delta(f.size, f.prev)} |`))
       lines.push('', '</details>')
     }
+  }
+
+  if (report.contributors?.length) {
+    lines.push('', '<details><summary>Largest contributors (minified)</summary>', '', '| Module | Size |', '|---|---:|')
+    lines.push(...report.contributors.map((c) => `| \`${c.name}\` | ${formatBytes(c.bytes)} |`))
+    lines.push('', '</details>')
+  }
+
+  if (report.duplicates?.length) {
+    lines.push('', '**Duplicate packages:** ' + report.duplicates.map((d) => `\`${d.name}\` ×${d.paths.length}`).join(', '))
   }
 
   return lines.join('\n') + '\n'

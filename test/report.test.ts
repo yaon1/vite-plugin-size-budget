@@ -42,3 +42,17 @@ it('lists files over their per-file limit', () => {
   const report: Report = { version: 1, compression: 'gzip', files: [], budgets: [{ ...budget(10), oversized: [{ file: 'assets/big-AAAAAAAA.js', size: 70_000 }] }] }
   expect(toMarkdown(report)).toContain('- `assets/big.js` is 70.00 kB, above the per-file limit of `assets/*.js`')
 })
+
+it('adds contributors and duplicate packages', () => {
+  const report: Report = {
+    version: 1,
+    compression: 'gzip',
+    files: [],
+    budgets: [],
+    contributors: [{ name: 'date-fns', bytes: 135_000 }],
+    duplicates: [{ name: 'date-fns', paths: ['a', 'b'] }],
+  }
+  const md = toMarkdown(report)
+  expect(md).toContain('| `date-fns` | 135.00 kB |')
+  expect(md).toContain('**Duplicate packages:** `date-fns` ×2')
+})
