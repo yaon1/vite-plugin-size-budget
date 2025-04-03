@@ -44,3 +44,15 @@ it('supports the @initial budget on a real build with a lazy chunk', async () =>
   expect(report.budgets[0]?.files.some((f) => f.includes('lazy'))).toBe(false)
   expect(report.budgets[0]?.files.length).toBeGreaterThan(0)
 })
+
+it('collects every output of a multi-format library build', async () => {
+  await writeFile(join(root, 'lib.js'), 'export const answer = 42')
+  await build({
+    root,
+    logLevel: 'silent',
+    build: { outDir: 'dist', lib: { entry: join(root, 'lib.js'), formats: ['es', 'cjs'], fileName: 'lib' } },
+    plugins: [sizeBudget({ budgets: [{ path: '*.{js,mjs}', max: '10 kB' }], reportFile: 'dist/size.json' })],
+  })
+  const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
+  expect(report.files.map((f) => f.file).sort()).toEqual(['lib.js', 'lib.mjs'])
+})

@@ -2,9 +2,9 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import type { Plugin, ResolvedConfig } from 'vite'
 import { evaluate, type Budget } from './budget.js'
-import { duplicatePackages, topContributors } from './modules.js'
+import { duplicatePackages, topContributors, type ModuleLike } from './modules.js'
 import { initialFiles, type OutputAssetLike, type OutputChunkLike } from './graph.js'
-import { measure, type Compression } from './measure.js'
+import { measure, type Compression, type FileSize } from './measure.js'
 import { toMarkdown, type Report } from './report.js'
 import { formatBytes } from './size.js'
 
@@ -40,6 +40,11 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
   const compression = options.compression ?? 'gzip'
   const failOnExceed = options.failOnExceed ?? Boolean(process.env.CI)
   let config: ResolvedConfig
+  // A build can emit several outputs (e.g. library formats es + cjs); collect them all
+  // and judge once in closeBundle, otherwise the last output would overwrite the report.
+  let sizes: FileSize[] = []
+  let initial: string[] = []
+  let chunks: { modules: Record<string, ModuleLike> }[] = []
 
   return {
     name: 'vite-plugin-size-budget',
@@ -50,20 +55,37 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       config = resolved
     },
 
-    async generateBundle(_, bundle) {
+    buildStart() {
+      sizes = []
+      initial = []
+      chunks = []
+    },
+
+    generateBundle(_, bundle) {
       // SSR builds produce server code that isn't shipped to browsers.
       if (config.build.ssr) return
 
-      const sizes = Object.values(bundle)
-        .filter((o) => !o.fileName.endsWith('.map'))
-        .map((o) => measure(o.fileName, o.type === 'chunk' ? o.code : o.source))
-      const report: Report = { version: 1, compression, files: sizes, budgets: evaluate(sizes, options.budgets, compression, {
-        initial: initialFiles(bundle as unknown as Record<string, OutputChunkLike | OutputAssetLike>),
-      }, options.warnAt ?? 0.9) }
-      const chunks = Object.values(bundle).filter((o) => o.type === 'chunk')
-      report.contributors = topContributors(chunks, config.root)
-      report.duplicates = duplicatePackages(chunks)
-      for (const d of report.duplicates) config.logger.warn(`  ⚠ ${d.name} is bundled ${d.paths.length} times: ${d.paths.join(', ')}`)
+      sizes.push(
+        ...Object.values(bundle)
+          .filter((o) => !o.fileName.endsWith('.map'))
+          .map((o) => measure(o.fileName, o.type === 'chunk' ? o.code : o.source)),
+      )
+      initial.push(...initialFiles(bundle as unknown as Record<string, OutputChunkLike | OutputAssetLike>))
+      chunks.push(...Object.values(bundle).filter((o) => o.type === 'chunk'))
+    },
+
+    async closeBundle() {
+      if (config.build.ssr || sizes.length === 0) return
+
+      const report: Report = {
+        version: 1,
+        compression,
+        files: sizes,
+        budgets: evaluate(sizes, options.budgets, compression, { initial }, options.warnAt ?? 0.9),
+        contributors: topContributors(chunks, config.root),
+        duplicates: duplicatePackages(chunks),
+      }
+      for (const d of report.duplicates ?? []) config.logger.warn(`  ⚠ ${d.name} is bundled ${d.paths.length} times: ${d.paths.join(', ')}`)
       const baseline = options.baseline ? await readBaseline(resolve(config.root, options.baseline)) : undefined
 
       if (options.reportFile !== false) {
