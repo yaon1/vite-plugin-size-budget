@@ -1,12 +1,13 @@
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
+import picomatch from 'picomatch'
 import type { Plugin, ResolvedConfig } from 'vite'
 import { evaluate, type Budget } from './budget.js'
 import { duplicatePackages, topContributors, type ModuleLike } from './modules.js'
 import { initialFiles, type OutputAssetLike, type OutputChunkLike } from './graph.js'
 import { measure, type Compression, type FileSize } from './measure.js'
 import { toMarkdown, type Report } from './report.js'
-import { formatBytes } from './size.js'
+import { formatBytes, parseSize } from './size.js'
 
 export interface SizeBudgetOptions {
   budgets: Budget[]
@@ -18,6 +19,8 @@ export interface SizeBudgetOptions {
   reportFile?: string | false
   /** A previous JSON report to diff against (e.g. downloaded from the main branch). */
   baseline?: string
+  /** Globs of output files to leave out entirely, e.g. "*.wasm" or "stats.html". */
+  exclude?: string[]
   /** Fraction of a limit above which a passing budget is reported as a warning. Default: 0.9. */
   warnAt?: number
   /** Append a markdown table to $GITHUB_STEP_SUMMARY when present. Default: true. */
@@ -36,7 +39,18 @@ async function readBaseline(path: string): Promise<Report | undefined> {
   }
 }
 
+function validate(options: SizeBudgetOptions): void {
+  if (!Array.isArray(options.budgets) || options.budgets.length === 0) {
+    throw new Error('vite-plugin-size-budget: pass at least one budget, e.g. { path: "assets/*.js", max: "150 kB" }')
+  }
+  if (options.warnAt !== undefined && !(options.warnAt > 0 && options.warnAt <= 1)) {
+    throw new Error('vite-plugin-size-budget: warnAt must be between 0 and 1')
+  }
+  for (const b of options.budgets) parseSize(b.max)
+}
+
 export default function sizeBudget(options: SizeBudgetOptions): Plugin {
+  validate(options)
   const compression = options.compression ?? 'gzip'
   const failOnExceed = options.failOnExceed ?? Boolean(process.env.CI)
   let config: ResolvedConfig
@@ -45,6 +59,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
   let sizes: FileSize[] = []
   let initial: string[] = []
   let chunks: { modules: Record<string, ModuleLike> }[] = []
+  const isExcluded = options.exclude?.length ? picomatch(options.exclude, { dot: true }) : () => false
 
   return {
     name: 'vite-plugin-size-budget',
@@ -67,7 +82,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
 
       sizes.push(
         ...Object.values(bundle)
-          .filter((o) => !o.fileName.endsWith('.map'))
+          .filter((o) => !o.fileName.endsWith('.map') && !isExcluded(o.fileName))
           .map((o) => measure(o.fileName, o.type === 'chunk' ? o.code : o.source)),
       )
       initial.push(...initialFiles(bundle as unknown as Record<string, OutputChunkLike | OutputAssetLike>))
@@ -76,6 +91,11 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
 
     async closeBundle() {
       if (config.build.ssr || sizes.length === 0) return
+      // Escape hatch for emergency deploys: SIZE_BUDGET_SKIP=1 vite build
+      if (process.env.SIZE_BUDGET_SKIP === '1') {
+        config.logger.warn('  size budgets skipped (SIZE_BUDGET_SKIP=1)')
+        return
+      }
 
       const report: Report = {
         version: 1,

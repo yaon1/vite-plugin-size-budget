@@ -56,3 +56,24 @@ it('collects every output of a multi-format library build', async () => {
   const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
   expect(report.files.map((f) => f.file).sort()).toEqual(['lib.js', 'lib.mjs'])
 })
+
+it('leaves excluded files out of the report', async () => {
+  await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '**', max: '1 MB' }], exclude: ['*.html'], reportFile: 'dist/size.json' })] })
+  const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
+  expect(report.files.some((f) => f.file.endsWith('.html'))).toBe(false)
+})
+
+it('can be skipped with SIZE_BUDGET_SKIP=1', async () => {
+  process.env.SIZE_BUDGET_SKIP = '1'
+  try {
+    await expect(run('1 B', true)).resolves.toBeDefined()
+  } finally {
+    delete process.env.SIZE_BUDGET_SKIP
+  }
+})
+
+it('validates options eagerly', () => {
+  expect(() => sizeBudget({ budgets: [] })).toThrow(/at least one budget/)
+  expect(() => sizeBudget({ budgets: [{ path: '*', max: 'huge' }] })).toThrow(/Invalid size/)
+  expect(() => sizeBudget({ budgets: [{ path: '*', max: 1 }], warnAt: 2 })).toThrow(/warnAt/)
+})
