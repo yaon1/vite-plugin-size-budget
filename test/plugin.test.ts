@@ -77,3 +77,13 @@ it('validates options eagerly', () => {
   expect(() => sizeBudget({ budgets: [{ path: '*', max: 'huge' }] })).toThrow(/Invalid size/)
   expect(() => sizeBudget({ budgets: [{ path: '*', max: 1 }], warnAt: 2 })).toThrow(/warnAt/)
 })
+
+it('provides @lazy and type groups in builds', async () => {
+  await writeFile(join(root, 'main.js'), "import('./lazy.js'); console.log('main')")
+  await writeFile(join(root, 'lazy.js'), 'export const x = 1')
+  await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@lazy', max: '1 kB' }, { path: '@js', max: '10 kB' }], reportFile: 'dist/size.json' })] })
+  const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
+  expect(report.budgets[0]?.files).toHaveLength(1)
+  expect(report.budgets[0]?.files[0]).toMatch(/lazy/)
+  expect(report.budgets[1]?.files).toHaveLength(2)
+})

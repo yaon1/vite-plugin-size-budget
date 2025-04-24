@@ -4,8 +4,9 @@ import { parseSize } from './size.js'
 
 export interface Budget {
   /**
-   * Glob matched against output file names, e.g. "assets/*.js", or "@initial" for
-   * everything downloaded before the app starts (entries + static imports + their CSS).
+   * Glob matched against output file names, e.g. "assets/*.js", or a group:
+   * "@initial" (entries + static imports + their CSS), "@lazy" (dynamic-only chunks),
+   * "@js", "@css", "@images", "@fonts".
    */
   path: string
   /** Limit for the sum of all matched files. */
