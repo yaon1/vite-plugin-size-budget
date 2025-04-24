@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { initialFiles, type OutputAssetLike, type OutputChunkLike } from '../src/graph.js'
+import { initialFiles, lazyFiles, typeGroups, type OutputAssetLike, type OutputChunkLike } from '../src/graph.js'
 
 const chunk = (fileName: string, imports: string[] = [], css: string[] = [], isEntry = false): OutputChunkLike => ({
   type: 'chunk',
@@ -24,4 +24,21 @@ it('follows static imports from entries and skips lazy chunks', () => {
 
 it('handles cycles', () => {
   expect(initialFiles({ 'a.js': chunk('a.js', ['b.js'], [], true), 'b.js': chunk('b.js', ['a.js']) })).toEqual(['a.js', 'b.js'])
+})
+
+it('groups files by type', () => {
+  expect(typeGroups(['a.js', 'b.mjs', 'c.css', 'd.woff2', 'e.svg', 'f.json'])).toEqual({
+    js: ['a.js', 'b.mjs'],
+    css: ['c.css'],
+    images: ['e.svg'],
+    fonts: ['d.woff2'],
+  })
+})
+
+it('lists lazy chunks', () => {
+  const bundle = {
+    'index.js': chunk('index.js', [], [], true),
+    'admin.js': chunk('admin.js'),
+  }
+  expect(lazyFiles(bundle)).toEqual(['admin.js'])
 })

@@ -32,3 +32,24 @@ export function initialFiles(bundle: Record<string, OutputChunkLike | OutputAsse
   }
   return [...seen].sort()
 }
+
+const TYPES: Record<string, RegExp> = {
+  js: /\.(m|c)?js$/,
+  css: /\.css$/,
+  images: /\.(png|jpe?g|gif|webp|avif|svg|ico)$/,
+  fonts: /\.(woff2?|ttf|otf|eot)$/,
+}
+
+/** Built-in groups by file type: @js, @css, @images, @fonts. */
+export function typeGroups(files: readonly string[]): Record<string, string[]> {
+  return Object.fromEntries(Object.entries(TYPES).map(([name, re]) => [name, files.filter((f) => re.test(f))]))
+}
+
+/** Chunks reachable only through dynamic import(): code users load later, on demand. */
+export function lazyFiles(bundle: Record<string, OutputChunkLike | OutputAssetLike>): string[] {
+  const initial = new Set(initialFiles(bundle))
+  return Object.values(bundle)
+    .filter((o): o is OutputChunkLike => o.type === 'chunk' && !initial.has(o.fileName))
+    .map((o) => o.fileName)
+    .sort()
+}
