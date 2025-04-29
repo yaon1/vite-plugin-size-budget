@@ -3,6 +3,7 @@ export interface OutputChunkLike {
   type: 'chunk'
   fileName: string
   isEntry: boolean
+  name?: string
   isDynamicEntry?: boolean
   imports: string[]
   viteMetadata?: { importedCss: Set<string> }
@@ -17,7 +18,7 @@ export interface OutputAssetLike {
  * they import statically (transitively) and their CSS. Lazy `import()` chunks are excluded,
  * which is what makes this the number users actually wait for.
  */
-export function initialFiles(bundle: Record<string, OutputChunkLike | OutputAssetLike>): string[] {
+export function initialFiles(bundle: Record<string, OutputChunkLike | OutputAssetLike>, only?: (chunk: OutputChunkLike) => boolean): string[] {
   const seen = new Set<string>()
   const visit = (fileName: string) => {
     const chunk = bundle[fileName]
@@ -28,7 +29,7 @@ export function initialFiles(bundle: Record<string, OutputChunkLike | OutputAsse
     chunk.imports.forEach(visit)
   }
   for (const output of Object.values(bundle)) {
-    if (output.type === 'chunk' && output.isEntry) visit(output.fileName)
+    if (output.type === 'chunk' && output.isEntry && (!only || only(output))) visit(output.fileName)
   }
   return [...seen].sort()
 }
@@ -52,4 +53,15 @@ export function lazyFiles(bundle: Record<string, OutputChunkLike | OutputAssetLi
     .filter((o): o is OutputChunkLike => o.type === 'chunk' && !initial.has(o.fileName))
     .map((o) => o.fileName)
     .sort()
+}
+
+/** One "@entry:<name>" group per entry, for multi-page apps with a budget per page. */
+export function entryGroups(bundle: Record<string, OutputChunkLike | OutputAssetLike>): Record<string, string[]> {
+  const groups: Record<string, string[]> = {}
+  for (const output of Object.values(bundle)) {
+    if (output.type === 'chunk' && output.isEntry && output.name) {
+      groups[`entry:${output.name}`] = initialFiles(bundle, (c) => c === output)
+    }
+  }
+  return groups
 }

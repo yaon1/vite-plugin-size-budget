@@ -6,7 +6,7 @@ export interface Budget {
   /**
    * Glob matched against output file names, e.g. "assets/*.js", or a group:
    * "@initial" (entries + static imports + their CSS), "@lazy" (dynamic-only chunks),
-   * "@js", "@css", "@images", "@fonts".
+   * "@js", "@css", "@images", "@fonts", or "@entry:<name>" for one entry of a multi-page app.
    */
   path: string
   /** Limit for the sum of all matched files. */

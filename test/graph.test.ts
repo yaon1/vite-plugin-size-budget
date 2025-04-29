@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { initialFiles, lazyFiles, typeGroups, type OutputAssetLike, type OutputChunkLike } from '../src/graph.js'
+import { entryGroups, initialFiles, lazyFiles, typeGroups, type OutputAssetLike, type OutputChunkLike } from '../src/graph.js'
 
 const chunk = (fileName: string, imports: string[] = [], css: string[] = [], isEntry = false): OutputChunkLike => ({
   type: 'chunk',
@@ -41,4 +41,14 @@ it('lists lazy chunks', () => {
     'admin.js': chunk('admin.js'),
   }
   expect(lazyFiles(bundle)).toEqual(['admin.js'])
+})
+
+it('builds one group per entry', () => {
+  const bundle = {
+    'home.js': { ...chunk('home.js', ['shared.js'], [], true), name: 'home' },
+    'admin.js': { ...chunk('admin.js', ['shared.js', 'charts.js'], [], true), name: 'admin' },
+    'shared.js': chunk('shared.js'),
+    'charts.js': chunk('charts.js'),
+  }
+  expect(entryGroups(bundle)).toEqual({ 'entry:home': ['home.js', 'shared.js'], 'entry:admin': ['admin.js', 'charts.js', 'shared.js'] })
 })

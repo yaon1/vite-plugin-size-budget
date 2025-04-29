@@ -4,7 +4,7 @@ import picomatch from 'picomatch'
 import type { Plugin, ResolvedConfig } from 'vite'
 import { evaluate, type Budget } from './budget.js'
 import { duplicatePackages, topContributors, type ModuleLike } from './modules.js'
-import { initialFiles, lazyFiles, typeGroups, type OutputAssetLike, type OutputChunkLike } from './graph.js'
+import { entryGroups, initialFiles, lazyFiles, typeGroups, type OutputAssetLike, type OutputChunkLike } from './graph.js'
 import { measure, type Compression, type FileSize } from './measure.js'
 import { toMarkdown, type Report } from './report.js'
 import { formatBytes, parseSize } from './size.js'
@@ -59,6 +59,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
   let sizes: FileSize[] = []
   let initial: string[] = []
   let lazy: string[] = []
+  let entries: Record<string, string[]> = {}
   let chunks: { modules: Record<string, ModuleLike> }[] = []
   const isExcluded = options.exclude?.length ? picomatch(options.exclude, { dot: true }) : () => false
 
@@ -75,6 +76,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       sizes = []
       initial = []
       lazy = []
+      entries = {}
       chunks = []
     },
 
@@ -90,6 +92,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       const graph = bundle as unknown as Record<string, OutputChunkLike | OutputAssetLike>
       initial.push(...initialFiles(graph))
       lazy.push(...lazyFiles(graph))
+      for (const [name, files] of Object.entries(entryGroups(graph))) entries[name] = [...(entries[name] ?? []), ...files]
       chunks.push(...Object.values(bundle).filter((o) => o.type === 'chunk'))
     },
 
@@ -105,7 +108,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
         version: 1,
         compression,
         files: sizes,
-        budgets: evaluate(sizes, options.budgets, compression, { initial, lazy, ...typeGroups(sizes.map((f) => f.file)) }, options.warnAt ?? 0.9),
+        budgets: evaluate(sizes, options.budgets, compression, { initial, lazy, ...entries, ...typeGroups(sizes.map((f) => f.file)) }, options.warnAt ?? 0.9),
         contributors: topContributors(chunks, config.root),
         duplicates: duplicatePackages(chunks),
       }
