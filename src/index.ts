@@ -133,6 +133,14 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
         for (const f of b.oversized) config.logger.warn(`      ${f.file} is ${formatBytes(f.size)}, above the per-file limit`)
       }
 
+      // Inline annotations on the workflow run page.
+      if (process.env.GITHUB_ACTIONS === 'true') {
+        for (const b of report.budgets) {
+          if (!b.ok) console.log(`::error title=Size budget exceeded::${b.path} is ${formatBytes(b.total)} (limit ${formatBytes(b.limit)})`)
+          else if (b.warning) console.log(`::warning title=Size budget nearly used::${b.path} is at ${Math.round((b.total / b.limit) * 100)}%`)
+        }
+      }
+
       const failed = report.budgets.filter((b) => !b.ok)
       if (failed.length > 0 && failOnExceed) {
         this.error(`Size budget exceeded: ${failed.map((b) => b.path).join(', ')}`)

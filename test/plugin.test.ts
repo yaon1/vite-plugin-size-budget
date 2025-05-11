@@ -87,3 +87,17 @@ it('provides @lazy and type groups in builds', async () => {
   expect(report.budgets[0]?.files[0]).toMatch(/lazy/)
   expect(report.budgets[1]?.files).toHaveLength(2)
 })
+
+it('emits GitHub Actions annotations', async () => {
+  process.env.GITHUB_ACTIONS = 'true'
+  const lines: string[] = []
+  const log = console.log
+  console.log = (line: string) => void lines.push(line)
+  try {
+    await run('100 B', false)
+  } finally {
+    console.log = log
+    delete process.env.GITHUB_ACTIONS
+  }
+  expect(lines.some((l) => l.startsWith('::error title=Size budget exceeded::assets/*.js'))).toBe(true)
+})
