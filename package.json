@@ -11,7 +11,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
   "keywords": [
     "vite",
@@ -36,5 +37,8 @@
   },
   "dependencies": {
     "picomatch": "^4.0.2"
+  },
+  "bin": {
+    "size-budget": "./bin/size-budget.js"
   }
 }
