@@ -27,10 +27,10 @@ function delta(current: number, previous: number | undefined): string {
   return `${diff > 0 ? '+' : ''}${formatBytes(diff)}${pct}`
 }
 
-export function toMarkdown(report: Report, baseline?: Report): string {
+export function toMarkdown(report: Report, baseline?: Report, name?: string): string {
   const previousBudget = new Map(baseline?.budgets.map((b) => [b.path, b.total]))
   const lines = [
-    '### Bundle size budgets',
+    name ? `### Bundle size budgets — ${name}` : '### Bundle size budgets',
     '',
     '| Budget | Size | Limit | Change | |',
     '|---|---:|---:|---:|:-:|',

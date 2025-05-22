@@ -23,6 +23,10 @@ export interface SizeBudgetOptions {
   exclude?: string[]
   /** Fraction of a limit above which a passing budget is reported as a warning. Default: 0.9. */
   warnAt?: number
+  /** Also write the markdown report to this file, e.g. for a sticky PR comment action. */
+  markdownFile?: string
+  /** Label for this build in the summary when several builds report into one job. */
+  name?: string
   /** Append a markdown table to $GITHUB_STEP_SUMMARY when present. Default: true. */
   githubSummary?: boolean
 }
@@ -121,8 +125,14 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
         await writeFile(file, JSON.stringify(report, null, 2))
       }
 
+      const markdown = toMarkdown(report, baseline, options.name)
+      if (options.markdownFile) {
+        const file = resolve(config.root, options.markdownFile)
+        await mkdir(dirname(file), { recursive: true })
+        await writeFile(file, markdown)
+      }
       const summary = process.env.GITHUB_STEP_SUMMARY
-      if (summary && options.githubSummary !== false) await appendFile(summary, toMarkdown(report, baseline))
+      if (summary && options.githubSummary !== false) await appendFile(summary, markdown)
 
       for (const b of report.budgets) {
         const line = `${b.path} (${b.compression}): ${formatBytes(b.total)} / ${formatBytes(b.limit)}`
