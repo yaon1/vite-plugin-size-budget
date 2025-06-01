@@ -1,5 +1,5 @@
 import picomatch from 'picomatch'
-import type { Compression, FileSize } from './measure.js'
+import { sizeOf, type Compression, type FileSize } from './measure.js'
 import { parseSize } from './size.js'
 
 export interface Budget {
@@ -45,10 +45,10 @@ export function evaluate(
     if (budget.path.startsWith('@') && !group) throw new Error(`Unknown budget group "${budget.path}"`)
     const isMatch = group ? (file: string) => group.includes(file) : picomatch(budget.path, { dot: true })
     const matched = sizes.filter((s) => isMatch(s.file))
-    const total = matched.reduce((sum, s) => sum + s[compression], 0)
+    const total = matched.reduce((sum, s) => sum + sizeOf(s, compression), 0)
     const limit = parseSize(budget.max)
     const fileLimit = budget.maxFile === undefined ? Infinity : parseSize(budget.maxFile)
-    const oversized = matched.filter((s) => s[compression] > fileLimit).map((s) => ({ file: s.file, size: s[compression] }))
+    const oversized = matched.filter((s) => sizeOf(s, compression) > fileLimit).map((s) => ({ file: s.file, size: sizeOf(s, compression) }))
     return { path: budget.path, compression, limit, total, files: matched.map((s) => s.file), ok: total <= limit && oversized.length === 0, warning: total <= limit && total > limit * warnAt, oversized }
   })
 }

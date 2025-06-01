@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { measure } from '../src/measure.js'
+import { measure, zstdAvailable } from '../src/measure.js'
 import { formatBytes, parseSize } from '../src/size.js'
 
 describe('parseSize', () => {
@@ -22,4 +22,10 @@ it('measures compressed sizes', () => {
   expect(size.none).toBe(10_000)
   expect(size.gzip).toBeLessThan(100)
   expect(size.brotli).toBeLessThan(size.gzip)
+})
+
+it.runIf(zstdAvailable())('measures zstd where Node supports it', () => {
+  const size = measure('a.js', 'y'.repeat(10_000))
+  expect(size.zstd).toBeGreaterThan(0)
+  expect(size.zstd).toBeLessThan(200)
 })

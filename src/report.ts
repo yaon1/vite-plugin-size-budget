@@ -1,5 +1,5 @@
 import type { BudgetResult } from './budget.js'
-import type { Compression, FileSize } from './measure.js'
+import { sizeOf, type Compression, type FileSize } from './measure.js'
 import type { Contributor } from './modules.js'
 import { formatBytes } from './size.js'
 
@@ -47,9 +47,9 @@ export function toMarkdown(report: Report, baseline?: Report, name?: string): st
 
   if (baseline) {
     const key = report.compression
-    const before = new Map(baseline.files.map((f) => [stableName(f.file), f[key]]))
+    const before = new Map(baseline.files.map((f) => [stableName(f.file), sizeOf(f, key)]))
     const changed = report.files
-      .map((f) => ({ name: stableName(f.file), size: f[key], prev: before.get(stableName(f.file)) }))
+      .map((f) => ({ name: stableName(f.file), size: sizeOf(f, key), prev: before.get(stableName(f.file)) }))
       .filter((f) => f.prev !== f.size)
       .sort((a, b) => Math.abs(b.size - (b.prev ?? 0)) - Math.abs(a.size - (a.prev ?? 0)))
       .slice(0, 10)
