@@ -106,3 +106,8 @@ it('writes a markdown file labelled with the build name', async () => {
   await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], name: 'web', markdownFile: 'dist/size.md', reportFile: false })] })
   expect(await readFile(join(root, 'dist/size.md'), 'utf8')).toMatch(/^### Bundle size budgets — web\n/)
 })
+
+it('writes the HTML report when asked', async () => {
+  await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], htmlFile: 'report/size.html', reportFile: false })] })
+  expect(await readFile(join(root, 'report/size.html'), 'utf8')).toContain('<h2>Budgets (gzip)</h2>')
+})

@@ -4,6 +4,7 @@ import picomatch from 'picomatch'
 import type { Plugin, ResolvedConfig } from 'vite'
 import { evaluate, type Budget } from './budget.js'
 import { duplicatePackages, topContributors, type ModuleLike } from './modules.js'
+import { toHtml } from './html.js'
 import { entryGroups, initialFiles, lazyFiles, typeGroups, type OutputAssetLike, type OutputChunkLike } from './graph.js'
 import { measure, type Compression, type FileSize } from './measure.js'
 import { toMarkdown, type Report } from './report.js'
@@ -23,6 +24,8 @@ export interface SizeBudgetOptions {
   exclude?: string[]
   /** Fraction of a limit above which a passing budget is reported as a warning. Default: 0.9. */
   warnAt?: number
+  /** Write a standalone HTML report, e.g. "dist/size-report.html". */
+  htmlFile?: string
   /** Also write the markdown report to this file, e.g. for a sticky PR comment action. */
   markdownFile?: string
   /** Label for this build in the summary when several builds report into one job. */
@@ -130,6 +133,11 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
         const file = resolve(config.root, options.markdownFile)
         await mkdir(dirname(file), { recursive: true })
         await writeFile(file, markdown)
+      }
+      if (options.htmlFile) {
+        const file = resolve(config.root, options.htmlFile)
+        await mkdir(dirname(file), { recursive: true })
+        await writeFile(file, toHtml(report, options.name ? `Bundle size — ${options.name}` : undefined))
       }
       const summary = process.env.GITHUB_STEP_SUMMARY
       if (summary && options.githubSummary !== false) await appendFile(summary, markdown)
