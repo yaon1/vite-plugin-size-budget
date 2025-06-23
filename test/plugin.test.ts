@@ -111,3 +111,13 @@ it('writes the HTML report when asked', async () => {
   await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], htmlFile: 'report/size.html', reportFile: false })] })
   expect(await readFile(join(root, 'report/size.html'), 'utf8')).toContain('<h2>Budgets (gzip)</h2>')
 })
+
+it('prints the change since the last local build', async () => {
+  const messages: string[] = []
+  const plugin = () => sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], reportFile: false, compareWithLast: true })
+  const customLogger = { info: (m: string) => messages.push(m), warn: (m: string) => messages.push(m), warnOnce: () => {}, error: () => {}, clearScreen: () => {}, hasErrorLogged: () => false, hasWarned: false }
+  await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [plugin()] })
+  await writeFile(join(root, 'main.js'), `console.log(${JSON.stringify('lorem ipsum dolor '.repeat(4000))})`)
+  await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [plugin()] })
+  expect(messages.some((m) => /@js \(gzip\): .* \(\+.* since last build\)/.test(m))).toBe(true)
+})

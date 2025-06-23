@@ -24,6 +24,11 @@ export interface SizeBudgetOptions {
   exclude?: string[]
   /** Fraction of a limit above which a passing budget is reported as a warning. Default: 0.9. */
   warnAt?: number
+  /**
+   * Remember the last local build in node_modules/.cache and print how each budget
+   * changed since then. Default: true outside CI.
+   */
+  compareWithLast?: boolean
   /** Write a standalone HTML report, e.g. "dist/size-report.html". */
   htmlFile?: string
   /** Also write the markdown report to this file, e.g. for a sticky PR comment action. */
@@ -129,6 +134,9 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       }
       for (const d of report.duplicates ?? []) config.logger.warn(`  ⚠ ${d.name} is bundled ${d.paths.length} times: ${d.paths.join(', ')}`)
       const baseline = options.baseline ? await readBaseline(resolve(config.root, options.baseline)) : undefined
+      const lastFile = resolve(config.root, 'node_modules/.cache/vite-plugin-size-budget/last.json')
+      const compareLocal = options.compareWithLast ?? !process.env.CI
+      const last = compareLocal ? await readBaseline(lastFile) : undefined
 
       if (options.reportFile !== false) {
         const file = resolve(config.root, options.reportFile ?? 'size-report.json')
@@ -151,7 +159,9 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       if (summary && options.githubSummary !== false) await appendFile(summary, markdown)
 
       for (const b of report.budgets) {
-        const line = `${b.path} (${b.compression}): ${formatBytes(b.total)} / ${formatBytes(b.limit)}`
+        const previous = last?.budgets.find((p) => p.path === b.path)?.total
+        const change = previous === undefined || previous === b.total ? '' : ` (${b.total > previous ? '+' : ''}${formatBytes(b.total - previous)} since last build)`
+        const line = `${b.path} (${b.compression}): ${formatBytes(b.total)} / ${formatBytes(b.limit)}${change}`
         if (b.ok && b.warning) config.logger.warn(`  ! ${line} — ${Math.round((b.total / b.limit) * 100)}% of the budget`)
         else if (b.ok) config.logger.info(`  ✓ ${line}`)
         else if (b.total > b.limit) config.logger.warn(`  ✗ ${line} — over by ${formatBytes(b.total - b.limit)}`)
@@ -165,6 +175,11 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
           if (!b.ok) console.log(`::error title=Size budget exceeded::${b.path} is ${formatBytes(b.total)} (limit ${formatBytes(b.limit)})`)
           else if (b.warning) console.log(`::warning title=Size budget nearly used::${b.path} is at ${Math.round((b.total / b.limit) * 100)}%`)
         }
+      }
+
+      if (compareLocal) {
+        await mkdir(dirname(lastFile), { recursive: true })
+        await writeFile(lastFile, JSON.stringify(report))
       }
 
       const failed = report.budgets.filter((b) => !b.ok)
