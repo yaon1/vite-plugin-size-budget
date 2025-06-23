@@ -36,6 +36,13 @@ export interface SizeBudgetOptions {
 
 export type { Budget, BudgetResult } from './budget.js'
 export { fromLighthouse } from './lighthouse.js'
+// Building blocks for custom tooling (e.g. checking a non-Vite build).
+export { evaluate } from './budget.js'
+export { initialFiles, lazyFiles, entryGroups, typeGroups } from './graph.js'
+export { toHtml } from './html.js'
+export { measure } from './measure.js'
+export { toMarkdown, stableName } from './report.js'
+export { parseSize, formatBytes } from './size.js'
 export type { Compression, FileSize } from './measure.js'
 export type { Report } from './report.js'
 
