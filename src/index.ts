@@ -35,6 +35,7 @@ export interface SizeBudgetOptions {
 }
 
 export type { Budget, BudgetResult } from './budget.js'
+export { fromLighthouse } from './lighthouse.js'
 export type { Compression, FileSize } from './measure.js'
 export type { Report } from './report.js'
 
