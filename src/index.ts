@@ -124,16 +124,23 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
         return
       }
 
+      const baseline = options.baseline ? await readBaseline(resolve(config.root, options.baseline)) : undefined
       const report: Report = {
         version: 1,
         compression,
         files: sizes,
-        budgets: evaluate(sizes, options.budgets, compression, { initial, lazy, ...entries, ...typeGroups(sizes.map((f) => f.file)) }, options.warnAt ?? 0.9),
+        budgets: evaluate(
+          sizes,
+          options.budgets,
+          compression,
+          { initial, lazy, ...entries, ...typeGroups(sizes.map((f) => f.file)) },
+          options.warnAt ?? 0.9,
+          baseline?.budgets,
+        ),
         contributors: topContributors(chunks, config.root),
         duplicates: duplicatePackages(chunks),
       }
       for (const d of report.duplicates ?? []) config.logger.warn(`  ⚠ ${d.name} is bundled ${d.paths.length} times: ${d.paths.join(', ')}`)
-      const baseline = options.baseline ? await readBaseline(resolve(config.root, options.baseline)) : undefined
       const lastFile = resolve(config.root, 'node_modules/.cache/vite-plugin-size-budget/last.json')
       const compareLocal = options.compareWithLast ?? !process.env.CI
       const last = compareLocal ? await readBaseline(lastFile) : undefined
@@ -166,6 +173,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
         else if (b.ok) config.logger.info(`  ✓ ${line}`)
         else if (b.total > b.limit) config.logger.warn(`  ✗ ${line} — over by ${formatBytes(b.total - b.limit)}`)
         else config.logger.warn(`  ✗ ${line}`)
+        if (b.increase) config.logger.warn(`      grew by ${formatBytes(b.increase.bytes)} since the baseline, allowed ${formatBytes(b.increase.limit)}`)
         for (const f of b.oversized) config.logger.warn(`      ${f.file} is ${formatBytes(f.size)}, above the per-file limit`)
       }
 

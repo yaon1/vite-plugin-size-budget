@@ -42,6 +42,9 @@ export function toMarkdown(report: Report, baseline?: Report, name?: string): st
     ),
   ]
 
+  const grew = report.budgets.filter((b) => b.increase).map((b) => `- \`${b.path}\` grew by ${formatBytes(b.increase!.bytes)}, more than the allowed ${formatBytes(b.increase!.limit)}`)
+  if (grew.length > 0) lines.push('', ...grew)
+
   const oversized = report.budgets.flatMap((b) => b.oversized.map((f) => `- \`${stableName(f.file)}\` is ${formatBytes(f.size)}, above the per-file limit of \`${b.path}\``))
   if (oversized.length > 0) lines.push('', ...oversized)
 
