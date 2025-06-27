@@ -14,6 +14,11 @@ export interface Budget {
   compression?: Compression
   /** Also fail when any single matched file is larger than this. */
   maxFile?: string | number
+  /**
+   * Fail when the total grew more than this versus the baseline report:
+   * a size ("10 kB") or a percentage ("5%"). Ignored without a baseline.
+   */
+  maxIncrease?: string | number
 }
 
 export interface BudgetResult {
@@ -25,6 +30,8 @@ export interface BudgetResult {
   ok: boolean
   /** Within the limit but above `warnAt` of it — worth a look before it breaks. */
   warning: boolean
+  /** Growth versus the baseline when `maxIncrease` was set and exceeded. */
+  increase?: { bytes: number; limit: number }
   /** Files that break `maxFile`, with their size. */
   oversized: { file: string; size: number }[]
 }
@@ -38,6 +45,7 @@ export function evaluate(
   defaultCompression: Compression,
   groups: Groups = {},
   warnAt = 0.9,
+  baseline?: readonly { path: string; total: number }[],
 ): BudgetResult[] {
   return budgets.map((budget) => {
     const compression = budget.compression ?? defaultCompression
@@ -49,6 +57,24 @@ export function evaluate(
     const limit = parseSize(budget.max)
     const fileLimit = budget.maxFile === undefined ? Infinity : parseSize(budget.maxFile)
     const oversized = matched.filter((s) => sizeOf(s, compression) > fileLimit).map((s) => ({ file: s.file, size: sizeOf(s, compression) }))
-    return { path: budget.path, compression, limit, total, files: matched.map((s) => s.file), ok: total <= limit && oversized.length === 0, warning: total <= limit && total > limit * warnAt, oversized }
+    const previous = baseline?.find((b) => b.path === budget.path)?.total
+    let increase: BudgetResult['increase']
+    if (budget.maxIncrease !== undefined && previous !== undefined) {
+      const allowed = typeof budget.maxIncrease === 'string' && budget.maxIncrease.trim().endsWith('%')
+        ? Math.round((previous * parseFloat(budget.maxIncrease)) / 100)
+        : parseSize(budget.maxIncrease)
+      if (total - previous > allowed) increase = { bytes: total - previous, limit: allowed }
+    }
+    return {
+      path: budget.path,
+      compression,
+      limit,
+      total,
+      files: matched.map((s) => s.file),
+      ok: total <= limit && oversized.length === 0 && increase === undefined,
+      warning: total <= limit && total > limit * warnAt,
+      oversized,
+      ...(increase ? { increase } : {}),
+    }
   })
 }

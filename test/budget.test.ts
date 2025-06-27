@@ -41,3 +41,13 @@ it('warns when a budget is nearly used up', () => {
   const [near, far] = evaluate(sizes, [{ path: 'assets/*.css', max: '5.2 kB' }, { path: 'assets/*.css', max: '50 kB' }], 'gzip')
   expect([near?.ok, near?.warning, far?.warning]).toEqual([true, true, false])
 })
+
+it('fails budgets that grew more than maxIncrease against the baseline', () => {
+  const baseline = [{ path: 'assets/*.js', total: 120_000 }]
+  const [pct] = evaluate(sizes, [{ path: 'assets/*.js', max: '1 MB', maxIncrease: '5%' }], 'gzip', {}, 0.9, baseline)
+  expect(pct).toMatchObject({ ok: false, increase: { bytes: 10_000, limit: 6_000 } })
+  const [abs] = evaluate(sizes, [{ path: 'assets/*.js', max: '1 MB', maxIncrease: '20 kB' }], 'gzip', {}, 0.9, baseline)
+  expect(abs?.ok).toBe(true)
+  const [none] = evaluate(sizes, [{ path: 'assets/*.js', max: '1 MB', maxIncrease: '1%' }], 'gzip')
+  expect(none?.ok).toBe(true)
+})
