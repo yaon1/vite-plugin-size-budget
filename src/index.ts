@@ -101,8 +101,10 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
     },
 
     generateBundle(_, bundle) {
-      // SSR builds produce server code that isn't shipped to browsers.
-      if (config.build.ssr) return
+      // SSR builds (and, with Vite 6+ environments, any non-client environment)
+      // produce server code that isn't shipped to browsers.
+      const environment = (this as { environment?: { name: string } }).environment
+      if (config.build.ssr || (environment && environment.name !== 'client')) return
 
       sizes.push(
         ...Object.values(bundle)
