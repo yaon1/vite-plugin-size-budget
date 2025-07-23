@@ -121,3 +121,9 @@ it('prints the change since the last local build', async () => {
   await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [plugin()] })
   expect(messages.some((m) => /@js \(gzip\): .* \(\+.* since last build\)/.test(m))).toBe(true)
 })
+
+it('skips SSR builds', async () => {
+  await writeFile(join(root, 'server.js'), 'export const render = () => "<p>hi</p>"')
+  await build({ root, logLevel: 'silent', build: { outDir: 'dist-ssr', ssr: join(root, 'server.js') }, plugins: [sizeBudget({ budgets: [{ path: '**', max: 1 }], failOnExceed: true, reportFile: 'dist-ssr/size.json' })] })
+  await expect(readFile(join(root, 'dist-ssr/size.json'), 'utf8')).rejects.toThrow()
+})
