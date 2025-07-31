@@ -29,3 +29,9 @@ it.runIf(zstdAvailable())('measures zstd where Node supports it', () => {
   expect(size.zstd).toBeGreaterThan(0)
   expect(size.zstd).toBeLessThan(200)
 })
+
+describe('parseSize edge cases', () => {
+  it('accepts decimals and spacing', () => expect(parseSize(' 0.5 MB ')).toBe(500_000))
+  it('is case-insensitive', () => expect(parseSize('10KIB')).toBe(10_240))
+  it('rejects negative numbers', () => expect(() => parseSize('-5 kB')).toThrow())
+})
