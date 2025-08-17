@@ -52,3 +52,7 @@ it('builds one group per entry', () => {
   }
   expect(entryGroups(bundle)).toEqual({ 'entry:home': ['home.js', 'shared.js'], 'entry:admin': ['admin.js', 'charts.js', 'shared.js'] })
 })
+
+it('ignores imports that point outside the bundle', () => {
+  expect(initialFiles({ 'a.js': chunk('a.js', ['external.js'], [], true) })).toEqual(['a.js'])
+})
