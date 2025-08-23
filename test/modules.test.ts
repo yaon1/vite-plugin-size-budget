@@ -35,3 +35,7 @@ it('finds packages bundled twice', () => {
     { name: 'date-fns', paths: ['/app/node_modules/chart/node_modules/date-fns', '/app/node_modules/date-fns'] },
   ])
 })
+
+it('normalizes Windows paths', () => {
+  expect(packageOf('C:\\app\\node_modules\\@scope\\pkg\\index.js')).toBe('@scope/pkg')
+})
