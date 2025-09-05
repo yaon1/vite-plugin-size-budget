@@ -10,6 +10,8 @@ export interface Report {
   budgets: BudgetResult[]
   /** Largest packages and source files by minified size. */
   contributors?: Contributor[]
+  /** When and from which commit the report was produced, if known. */
+  meta?: { createdAt: string; commit?: string; name?: string }
   /** Packages bundled from several install paths. */
   duplicates?: { name: string; paths: string[] }[]
 }

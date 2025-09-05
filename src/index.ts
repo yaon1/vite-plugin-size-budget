@@ -139,6 +139,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
           options.warnAt ?? 0.9,
           baseline?.budgets,
         ),
+        meta: { createdAt: new Date().toISOString(), commit: process.env.GITHUB_SHA ?? process.env.CI_COMMIT_SHA, name: options.name },
         contributors: topContributors(chunks, config.root),
         duplicates: duplicatePackages(chunks),
       }

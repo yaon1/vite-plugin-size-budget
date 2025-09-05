@@ -127,3 +127,15 @@ it('skips SSR builds', async () => {
   await build({ root, logLevel: 'silent', build: { outDir: 'dist-ssr', ssr: join(root, 'server.js') }, plugins: [sizeBudget({ budgets: [{ path: '**', max: 1 }], failOnExceed: true, reportFile: 'dist-ssr/size.json' })] })
   await expect(readFile(join(root, 'dist-ssr/size.json'), 'utf8')).rejects.toThrow()
 })
+
+it('records when and from which commit a report was made', async () => {
+  process.env.GITHUB_SHA = 'abc123'
+  try {
+    await run('50 kB', false)
+  } finally {
+    delete process.env.GITHUB_SHA
+  }
+  const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
+  expect(report.meta?.commit).toBe('abc123')
+  expect(Date.parse(report.meta?.createdAt ?? '')).not.toBeNaN()
+})
