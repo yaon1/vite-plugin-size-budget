@@ -29,3 +29,9 @@ it('checks a report and fails on exceeded budgets', async () => {
 it('prints usage for unknown commands', async () => {
   expect((await run(['nope']))[0]).toBe(2)
 })
+
+it('renders HTML from a report', async () => {
+  const [code, html] = await run(['html', await write({ version: 1, compression: 'gzip', files: [], budgets: [budget(1)] })])
+  expect(code).toBe(0)
+  expect(html).toContain('<h1>Bundle size report</h1>')
+})

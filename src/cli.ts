@@ -1,9 +1,11 @@
 import { readFile } from 'node:fs/promises'
+import { toHtml } from './html.js'
 import { toMarkdown, type Report } from './report.js'
 
 const USAGE = `Usage:
   size-budget compare <base.json> <head.json>   Markdown diff, e.g. for a PR comment
-  size-budget check <report.json>               Exit 1 if any budget failed`
+  size-budget check <report.json>               Exit 1 if any budget failed
+  size-budget html <report.json>                HTML report on stdout`
 
 async function load(path: string): Promise<Report> {
   const report = JSON.parse(await readFile(path, 'utf8')) as Report
@@ -22,6 +24,9 @@ export async function run(argv: string[]): Promise<[number, string]> {
     const report = await load(files[0]!)
     const failed = report.budgets.filter((b) => !b.ok)
     return failed.length === 0 ? [0, 'All budgets pass\n'] : [1, `Over budget: ${failed.map((b) => b.path).join(', ')}\n`]
+  }
+  if (command === 'html' && files.length === 1) {
+    return [0, toHtml(await load(files[0]!))]
   }
   return [2, USAGE + '\n']
 }
