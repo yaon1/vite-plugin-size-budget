@@ -26,11 +26,19 @@ export function topContributors(chunks: { modules: Record<string, ModuleLike> }[
   for (const chunk of chunks) {
     for (const [id, mod] of Object.entries(chunk.modules)) {
       if (mod.renderedLength === 0) continue
-      const name = packageOf(id) ?? id.replace(/\\/g, '/').replace(root.replace(/\\/g, '/') + '/', '').replace(/^\0/, '')
+      const name =
+        packageOf(id) ??
+        id
+          .replace(/\\/g, '/')
+          .replace(root.replace(/\\/g, '/') + '/', '')
+          .replace(/^\0/, '')
       totals.set(name, (totals.get(name) ?? 0) + mod.renderedLength)
     }
   }
-  return [...totals].map(([name, bytes]) => ({ name, bytes })).sort((a, b) => b.bytes - a.bytes).slice(0, limit)
+  return [...totals]
+    .map(([name, bytes]) => ({ name, bytes }))
+    .sort((a, b) => b.bytes - a.bytes)
+    .slice(0, limit)
 }
 
 /** Packages bundled from more than one install path, e.g. two lodash versions. */

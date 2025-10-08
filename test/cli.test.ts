@@ -5,7 +5,16 @@ import { expect, it } from 'vitest'
 import { run } from '../src/cli.js'
 import type { Report } from '../src/report.js'
 
-const budget = (total: number) => ({ path: '@initial', compression: 'gzip' as const, limit: 100_000, total, files: [], ok: total <= 100_000, warning: false, oversized: [] })
+const budget = (total: number) => ({
+  path: '@initial',
+  compression: 'gzip' as const,
+  limit: 100_000,
+  total,
+  files: [],
+  ok: total <= 100_000,
+  warning: false,
+  oversized: [],
+})
 
 async function write(report: Report): Promise<string> {
   const file = join(await mkdtemp(join(tmpdir(), 'cli-')), 'r.json')
@@ -23,7 +32,10 @@ it('compares two reports', async () => {
 
 it('checks a report and fails on exceeded budgets', async () => {
   expect((await run(['check', await write({ version: 1, compression: 'gzip', files: [], budgets: [budget(50_000)] })]))[0]).toBe(0)
-  expect(await run(['check', await write({ version: 1, compression: 'gzip', files: [], budgets: [budget(150_000)] })])).toEqual([1, 'Over budget: @initial\n'])
+  expect(await run(['check', await write({ version: 1, compression: 'gzip', files: [], budgets: [budget(150_000)] })])).toEqual([
+    1,
+    'Over budget: @initial\n',
+  ])
 })
 
 it('prints usage for unknown commands', async () => {

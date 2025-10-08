@@ -19,8 +19,8 @@ export default defineConfig({
   plugins: [
     sizeBudget({
       budgets: [
-        { path: 'assets/index-*.js', max: '80 kB' },             // входной чанк
-        { path: 'assets/*.js', max: '250 kB' },                  // весь JS
+        { path: 'assets/index-*.js', max: '80 kB' }, // входной чанк
+        { path: 'assets/*.js', max: '250 kB' }, // весь JS
         { path: 'assets/*.css', max: '20 kB', compression: 'brotli' },
       ],
       baseline: 'baseline/size-report.json',
@@ -34,7 +34,7 @@ export default defineConfig({
 ```yaml
 - uses: actions/download-artifact@v4
   with: { name: size-report, path: baseline }
-  continue-on-error: true   # при первом запуске baseline ещё нет
+  continue-on-error: true # при первом запуске baseline ещё нет
 - run: npm run build
 - uses: actions/upload-artifact@v4
   if: github.ref == 'refs/heads/main'
@@ -51,14 +51,14 @@ npm i -D vite-plugin-size-budget
 
 ## Опции
 
-| Опция | По умолчанию | |
-|---|---|---|
-| `budgets` | — | `{ path: glob, max: '150 kB' \| байты, compression? }[]`; проверяется сумма подходящих файлов |
-| `compression` | `'gzip'` | `'none' \| 'gzip' \| 'brotli'` |
-| `failOnExceed` | `true` в CI | Иначе только предупреждение |
-| `reportFile` | `size-report.json` | Путь JSON-отчёта, `false` отключает его |
-| `baseline` | — | Предыдущий отчёт для сравнения |
-| `githubSummary` | `true` | Писать таблицу в `$GITHUB_STEP_SUMMARY` |
+| Опция           | По умолчанию       |                                                                                               |
+| --------------- | ------------------ | --------------------------------------------------------------------------------------------- |
+| `budgets`       | —                  | `{ path: glob, max: '150 kB' \| байты, compression? }[]`; проверяется сумма подходящих файлов |
+| `compression`   | `'gzip'`           | `'none' \| 'gzip' \| 'brotli'`                                                                |
+| `failOnExceed`  | `true` в CI        | Иначе только предупреждение                                                                   |
+| `reportFile`    | `size-report.json` | Путь JSON-отчёта, `false` отключает его                                                       |
+| `baseline`      | —                  | Предыдущий отчёт для сравнения                                                                |
+| `githubSummary` | `true`             | Писать таблицу в `$GITHUB_STEP_SUMMARY`                                                       |
 
 Размеры понимают единицы `B`, `kB`, `KiB`, `MB`, `MiB`.
 

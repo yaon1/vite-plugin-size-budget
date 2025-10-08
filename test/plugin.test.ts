@@ -39,7 +39,12 @@ it('only warns when failOnExceed is false', async () => {
 it('supports the @initial budget on a real build with a lazy chunk', async () => {
   await writeFile(join(root, 'main.js'), "import('./lazy.js').then((m) => m.run()); console.log('main')")
   await writeFile(join(root, 'lazy.js'), `export function run() { console.log(${JSON.stringify('x'.repeat(5000))}) }`)
-  await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@initial', max: '5 kB' }], reportFile: 'dist/size.json' })] })
+  await build({
+    root,
+    logLevel: 'silent',
+    build: { outDir: 'dist' },
+    plugins: [sizeBudget({ budgets: [{ path: '@initial', max: '5 kB' }], reportFile: 'dist/size.json' })],
+  })
   const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
   expect(report.budgets[0]?.files.some((f) => f.includes('lazy'))).toBe(false)
   expect(report.budgets[0]?.files.length).toBeGreaterThan(0)
@@ -58,7 +63,12 @@ it('collects every output of a multi-format library build', async () => {
 })
 
 it('leaves excluded files out of the report', async () => {
-  await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '**', max: '1 MB' }], exclude: ['*.html'], reportFile: 'dist/size.json' })] })
+  await build({
+    root,
+    logLevel: 'silent',
+    build: { outDir: 'dist' },
+    plugins: [sizeBudget({ budgets: [{ path: '**', max: '1 MB' }], exclude: ['*.html'], reportFile: 'dist/size.json' })],
+  })
   const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
   expect(report.files.some((f) => f.file.endsWith('.html'))).toBe(false)
 })
@@ -81,7 +91,20 @@ it('validates options eagerly', () => {
 it('provides @lazy and type groups in builds', async () => {
   await writeFile(join(root, 'main.js'), "import('./lazy.js'); console.log('main')")
   await writeFile(join(root, 'lazy.js'), 'export const x = 1')
-  await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@lazy', max: '1 kB' }, { path: '@js', max: '10 kB' }], reportFile: 'dist/size.json' })] })
+  await build({
+    root,
+    logLevel: 'silent',
+    build: { outDir: 'dist' },
+    plugins: [
+      sizeBudget({
+        budgets: [
+          { path: '@lazy', max: '1 kB' },
+          { path: '@js', max: '10 kB' },
+        ],
+        reportFile: 'dist/size.json',
+      }),
+    ],
+  })
   const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
   expect(report.budgets[0]?.files).toHaveLength(1)
   expect(report.budgets[0]?.files[0]).toMatch(/lazy/)
@@ -103,19 +126,37 @@ it('emits GitHub Actions annotations', async () => {
 })
 
 it('writes a markdown file labelled with the build name', async () => {
-  await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], name: 'web', markdownFile: 'dist/size.md', reportFile: false })] })
+  await build({
+    root,
+    logLevel: 'silent',
+    build: { outDir: 'dist' },
+    plugins: [sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], name: 'web', markdownFile: 'dist/size.md', reportFile: false })],
+  })
   expect(await readFile(join(root, 'dist/size.md'), 'utf8')).toMatch(/^### Bundle size budgets — web\n/)
 })
 
 it('writes the HTML report when asked', async () => {
-  await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], htmlFile: 'report/size.html', reportFile: false })] })
+  await build({
+    root,
+    logLevel: 'silent',
+    build: { outDir: 'dist' },
+    plugins: [sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], htmlFile: 'report/size.html', reportFile: false })],
+  })
   expect(await readFile(join(root, 'report/size.html'), 'utf8')).toContain('<h2>Budgets (gzip)</h2>')
 })
 
 it('prints the change since the last local build', async () => {
   const messages: string[] = []
   const plugin = () => sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], reportFile: false, compareWithLast: true })
-  const customLogger = { info: (m: string) => messages.push(m), warn: (m: string) => messages.push(m), warnOnce: () => {}, error: () => {}, clearScreen: () => {}, hasErrorLogged: () => false, hasWarned: false }
+  const customLogger = {
+    info: (m: string) => messages.push(m),
+    warn: (m: string) => messages.push(m),
+    warnOnce: () => {},
+    error: () => {},
+    clearScreen: () => {},
+    hasErrorLogged: () => false,
+    hasWarned: false,
+  }
   await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [plugin()] })
   await writeFile(join(root, 'main.js'), `console.log(${JSON.stringify('lorem ipsum dolor '.repeat(4000))})`)
   await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [plugin()] })
@@ -124,7 +165,12 @@ it('prints the change since the last local build', async () => {
 
 it('skips SSR builds', async () => {
   await writeFile(join(root, 'server.js'), 'export const render = () => "<p>hi</p>"')
-  await build({ root, logLevel: 'silent', build: { outDir: 'dist-ssr', ssr: join(root, 'server.js') }, plugins: [sizeBudget({ budgets: [{ path: '**', max: 1 }], failOnExceed: true, reportFile: 'dist-ssr/size.json' })] })
+  await build({
+    root,
+    logLevel: 'silent',
+    build: { outDir: 'dist-ssr', ssr: join(root, 'server.js') },
+    plugins: [sizeBudget({ budgets: [{ path: '**', max: 1 }], failOnExceed: true, reportFile: 'dist-ssr/size.json' })],
+  })
   await expect(readFile(join(root, 'dist-ssr/size.json'), 'utf8')).rejects.toThrow()
 })
 

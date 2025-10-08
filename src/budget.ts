@@ -60,9 +60,10 @@ export function evaluate(
     const previous = baseline?.find((b) => b.path === budget.path)?.total
     let increase: BudgetResult['increase']
     if (budget.maxIncrease !== undefined && previous !== undefined) {
-      const allowed = typeof budget.maxIncrease === 'string' && budget.maxIncrease.trim().endsWith('%')
-        ? Math.round((previous * parseFloat(budget.maxIncrease)) / 100)
-        : parseSize(budget.maxIncrease)
+      const allowed =
+        typeof budget.maxIncrease === 'string' && budget.maxIncrease.trim().endsWith('%')
+          ? Math.round((previous * parseFloat(budget.maxIncrease)) / 100)
+          : parseSize(budget.maxIncrease)
       if (total - previous > allowed) increase = { bytes: total - previous, limit: allowed }
     }
     return {

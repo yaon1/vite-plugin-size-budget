@@ -8,7 +8,16 @@ it('strips Vite content hashes', () => {
 })
 
 const file = (file: string, gzip: number) => ({ file, none: gzip * 3, gzip, brotli: gzip - 1 })
-const budget = (total: number) => ({ path: 'assets/*.js', compression: 'gzip' as const, limit: 50_000, total, files: [], ok: total <= 50_000, warning: false, oversized: [] })
+const budget = (total: number) => ({
+  path: 'assets/*.js',
+  compression: 'gzip' as const,
+  limit: 50_000,
+  total,
+  files: [],
+  ok: total <= 50_000,
+  warning: false,
+  oversized: [],
+})
 
 it('renders budgets with deltas and changed files', () => {
   const baseline: Report = { version: 1, compression: 'gzip', files: [file('assets/index-AAAAAAAA.js', 40_000)], budgets: [budget(40_000)] }
@@ -39,7 +48,12 @@ it('renders budgets with deltas and changed files', () => {
 })
 
 it('lists files over their per-file limit', () => {
-  const report: Report = { version: 1, compression: 'gzip', files: [], budgets: [{ ...budget(10), oversized: [{ file: 'assets/big-AAAAAAAA.js', size: 70_000 }] }] }
+  const report: Report = {
+    version: 1,
+    compression: 'gzip',
+    files: [],
+    budgets: [{ ...budget(10), oversized: [{ file: 'assets/big-AAAAAAAA.js', size: 70_000 }] }],
+  }
   expect(toMarkdown(report)).toContain('- `assets/big.js` is 70.00 kB, above the per-file limit of `assets/*.js`')
 })
 

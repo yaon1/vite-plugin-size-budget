@@ -170,13 +170,17 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
 
       for (const b of report.budgets) {
         const previous = last?.budgets.find((p) => p.path === b.path)?.total
-        const change = previous === undefined || previous === b.total ? '' : ` (${b.total > previous ? '+' : ''}${formatBytes(b.total - previous)} since last build)`
+        const change =
+          previous === undefined || previous === b.total
+            ? ''
+            : ` (${b.total > previous ? '+' : ''}${formatBytes(b.total - previous)} since last build)`
         const line = `${b.path} (${b.compression}): ${formatBytes(b.total)} / ${formatBytes(b.limit)}${change}`
         if (b.ok && b.warning) config.logger.warn(`  ! ${line} — ${Math.round((b.total / b.limit) * 100)}% of the budget`)
         else if (b.ok) config.logger.info(`  ✓ ${line}`)
         else if (b.total > b.limit) config.logger.warn(`  ✗ ${line} — over by ${formatBytes(b.total - b.limit)}`)
         else config.logger.warn(`  ✗ ${line}`)
-        if (b.increase) config.logger.warn(`      grew by ${formatBytes(b.increase.bytes)} since the baseline, allowed ${formatBytes(b.increase.limit)}`)
+        if (b.increase)
+          config.logger.warn(`      grew by ${formatBytes(b.increase.bytes)} since the baseline, allowed ${formatBytes(b.increase.limit)}`)
         for (const f of b.oversized) config.logger.warn(`      ${f.file} is ${formatBytes(f.size)}, above the per-file limit`)
       }
 
@@ -184,7 +188,8 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       if (process.env.GITHUB_ACTIONS === 'true') {
         for (const b of report.budgets) {
           if (!b.ok) console.log(`::error title=Size budget exceeded::${b.path} is ${formatBytes(b.total)} (limit ${formatBytes(b.limit)})`)
-          else if (b.warning) console.log(`::warning title=Size budget nearly used::${b.path} is at ${Math.round((b.total / b.limit) * 100)}%`)
+          else if (b.warning)
+            console.log(`::warning title=Size budget nearly used::${b.path} is at ${Math.round((b.total / b.limit) * 100)}%`)
         }
       }
 

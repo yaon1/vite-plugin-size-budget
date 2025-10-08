@@ -18,7 +18,10 @@ export interface OutputAssetLike {
  * they import statically (transitively) and their CSS. Lazy `import()` chunks are excluded,
  * which is what makes this the number users actually wait for.
  */
-export function initialFiles(bundle: Record<string, OutputChunkLike | OutputAssetLike>, only?: (chunk: OutputChunkLike) => boolean): string[] {
+export function initialFiles(
+  bundle: Record<string, OutputChunkLike | OutputAssetLike>,
+  only?: (chunk: OutputChunkLike) => boolean,
+): string[] {
   const seen = new Set<string>()
   const visit = (fileName: string) => {
     const chunk = bundle[fileName]

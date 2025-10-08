@@ -19,7 +19,12 @@ const chunks: { modules: Record<string, ModuleLike> }[] = [
       '/app/node_modules/date-fns/index.js': { renderedLength: 70_000 },
     },
   },
-  { modules: { '/app/node_modules/chart/node_modules/date-fns/index.js': { renderedLength: 65_000 }, '/app/src/empty.ts': { renderedLength: 0 } } },
+  {
+    modules: {
+      '/app/node_modules/chart/node_modules/date-fns/index.js': { renderedLength: 65_000 },
+      '/app/src/empty.ts': { renderedLength: 0 },
+    },
+  },
 ]
 
 it('ranks contributors with packages aggregated', () => {

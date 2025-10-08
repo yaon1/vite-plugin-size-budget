@@ -32,13 +32,22 @@ it('flags single files over maxFile even when the total fits', () => {
 })
 
 it('targets named groups like @initial', () => {
-  const [initial] = evaluate(sizes, [{ path: '@initial', max: '50 kB' }], 'gzip', { initial: ['assets/index-abc.js', 'assets/index-abc.css'] })
+  const [initial] = evaluate(sizes, [{ path: '@initial', max: '50 kB' }], 'gzip', {
+    initial: ['assets/index-abc.js', 'assets/index-abc.css'],
+  })
   expect(initial).toMatchObject({ total: 45_000, ok: true, files: ['assets/index-abc.js', 'assets/index-abc.css'] })
   expect(() => evaluate(sizes, [{ path: '@nope', max: 1 }], 'gzip')).toThrow(/Unknown budget group/)
 })
 
 it('warns when a budget is nearly used up', () => {
-  const [near, far] = evaluate(sizes, [{ path: 'assets/*.css', max: '5.2 kB' }, { path: 'assets/*.css', max: '50 kB' }], 'gzip')
+  const [near, far] = evaluate(
+    sizes,
+    [
+      { path: 'assets/*.css', max: '5.2 kB' },
+      { path: 'assets/*.css', max: '50 kB' },
+    ],
+    'gzip',
+  )
   expect([near?.ok, near?.warning, far?.warning]).toEqual([true, true, false])
 })
 
