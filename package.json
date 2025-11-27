@@ -18,7 +18,11 @@
     "vite",
     "vite-plugin",
     "bundle-size",
-    "performance-budget"
+    "performance-budget",
+    "lighthouse",
+    "performance",
+    "ci",
+    "github-actions"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -51,5 +55,16 @@
   },
   "bin": {
     "size-budget": "./bin/size-budget.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yaon1/vite-plugin-size-budget.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yaon1/vite-plugin-size-budget/issues"
+  },
+  "homepage": "https://github.com/yaon1/vite-plugin-size-budget#readme",
+  "engines": {
+    "node": ">=20"
   }
 }
