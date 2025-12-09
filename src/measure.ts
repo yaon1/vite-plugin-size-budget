@@ -24,14 +24,15 @@ export function zstdAvailable(): boolean {
   return typeof zstdCompress === 'function'
 }
 
-export function measure(file: string, content: string | Uint8Array): FileSize {
+/**
+ * Measures raw size plus the requested compressions. Brotli at quality 11 is by far
+ * the slowest step, so callers pass only what their budgets use; gzip is always
+ * included because reports and diffs fall back to it.
+ */
+export function measure(file: string, content: string | Uint8Array, compressions: readonly Compression[] = ['gzip', 'brotli', 'zstd']): FileSize {
   const buffer = typeof content === 'string' ? Buffer.from(content) : Buffer.from(content.buffer, content.byteOffset, content.byteLength)
   const gzip = gzipSync(buffer, { level: 9 }).byteLength
-  return {
-    file,
-    none: buffer.byteLength,
-    gzip,
-    brotli: brotliCompressSync(buffer, { params: { [constants.BROTLI_PARAM_QUALITY]: 11 } }).byteLength,
-    zstd: zstdCompress ? zstdCompress(buffer).byteLength : gzip,
-  }
+  const brotli = compressions.includes('brotli') ? brotliCompressSync(buffer, { params: { [constants.BROTLI_PARAM_QUALITY]: 11 } }).byteLength : gzip
+  const zstd = compressions.includes('zstd') && zstdCompress ? zstdCompress(buffer).byteLength : gzip
+  return { file, none: buffer.byteLength, gzip, brotli, zstd }
 }

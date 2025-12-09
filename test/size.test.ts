@@ -35,3 +35,8 @@ describe('parseSize edge cases', () => {
   it('is case-insensitive', () => expect(parseSize('10KIB')).toBe(10_240))
   it('rejects negative numbers', () => expect(() => parseSize('-5 kB')).toThrow())
 })
+
+it('skips brotli when no budget needs it', () => {
+  const size = measure('a.js', 'z'.repeat(5000), ['gzip'])
+  expect(size.brotli).toBe(size.gzip)
+})

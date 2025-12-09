@@ -81,6 +81,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
   let lazy: string[] = []
   let entries: Record<string, string[]> = {}
   let chunks: { modules: Record<string, ModuleLike> }[] = []
+  const used = [...new Set([compression, ...options.budgets.map((b) => b.compression ?? compression)])]
   const isExcluded = options.exclude?.length ? picomatch(options.exclude, { dot: true }) : () => false
 
   return {
@@ -109,7 +110,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       sizes.push(
         ...Object.values(bundle)
           .filter((o) => !o.fileName.endsWith('.map') && !isExcluded(o.fileName))
-          .map((o) => measure(o.fileName, o.type === 'chunk' ? o.code : o.source)),
+          .map((o) => measure(o.fileName, o.type === 'chunk' ? o.code : o.source, used)),
       )
       const graph = bundle as unknown as Record<string, OutputChunkLike | OutputAssetLike>
       initial.push(...initialFiles(graph))
