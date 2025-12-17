@@ -160,7 +160,7 @@ it('prints the change since the last local build', async () => {
   await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [plugin()] })
   await writeFile(join(root, 'main.js'), `console.log(${JSON.stringify('lorem ipsum dolor '.repeat(4000))})`)
   await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [plugin()] })
-  expect(messages.some((m) => /@js \(gzip\): .* \(\+.* since last build\)/.test(m))).toBe(true)
+  expect(messages.some((m) => /@js .* gzip \(\+.* since last build\)/.test(m))).toBe(true)
 })
 
 it('skips SSR builds', async () => {

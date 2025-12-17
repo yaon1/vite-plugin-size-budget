@@ -169,13 +169,14 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
       const summary = process.env.GITHUB_STEP_SUMMARY
       if (summary && options.githubSummary !== false) await appendFile(summary, markdown)
 
+      const width = Math.max(...report.budgets.map((b) => b.path.length))
       for (const b of report.budgets) {
         const previous = last?.budgets.find((p) => p.path === b.path)?.total
         const change =
           previous === undefined || previous === b.total
             ? ''
             : ` (${b.total > previous ? '+' : ''}${formatBytes(b.total - previous)} since last build)`
-        const line = `${b.path} (${b.compression}): ${formatBytes(b.total)} / ${formatBytes(b.limit)}${change}`
+        const line = `${b.path.padEnd(width)}  ${formatBytes(b.total).padStart(10)} / ${formatBytes(b.limit).padEnd(10)} ${b.compression}${change}`
         if (b.ok && b.warning) config.logger.warn(`  ! ${line} — ${Math.round((b.total / b.limit) * 100)}% of the budget`)
         else if (b.ok) config.logger.info(`  ✓ ${line}`)
         else if (b.total > b.limit) config.logger.warn(`  ✗ ${line} — over by ${formatBytes(b.total - b.limit)}`)
