@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import picomatch from 'picomatch'
@@ -11,7 +12,8 @@ import { toMarkdown, type Report } from './report.js'
 import { formatBytes, parseSize } from './size.js'
 
 export interface SizeBudgetOptions {
-  budgets: Budget[]
+  /** Budgets to check. When omitted, `sizeBudgets` from the project's package.json is used. */
+  budgets?: Budget[]
   /** Default compression for budgets that don't set one. */
   compression?: Compression
   /** Fail the build when a budget is exceeded. Default: true in CI, false locally. */
@@ -59,7 +61,16 @@ async function readBaseline(path: string): Promise<Report | undefined> {
   }
 }
 
-function validate(options: SizeBudgetOptions): void {
+function readPackageBudgets(root: string): Budget[] {
+  try {
+    const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as { sizeBudgets?: Budget[] }
+    return pkg.sizeBudgets ?? []
+  } catch {
+    return []
+  }
+}
+
+function validate(options: SizeBudgetOptions & { budgets: Budget[] }): void {
   if (!Array.isArray(options.budgets) || options.budgets.length === 0) {
     throw new Error('vite-plugin-size-budget: pass at least one budget, e.g. { path: "assets/*.js", max: "150 kB" }')
   }
@@ -69,8 +80,10 @@ function validate(options: SizeBudgetOptions): void {
   for (const b of options.budgets) parseSize(b.max)
 }
 
-export default function sizeBudget(options: SizeBudgetOptions): Plugin {
-  validate(options)
+export default function sizeBudget(userOptions: SizeBudgetOptions = {}): Plugin {
+  // Budgets may come from package.json, which is only known once the root is resolved.
+  let options = userOptions as SizeBudgetOptions & { budgets: Budget[] }
+  if (userOptions.budgets) validate(options)
   const compression = options.compression ?? 'gzip'
   const failOnExceed = options.failOnExceed ?? Boolean(process.env.CI)
   let config: ResolvedConfig
@@ -81,7 +94,7 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
   let lazy: string[] = []
   let entries: Record<string, string[]> = {}
   let chunks: { modules: Record<string, ModuleLike> }[] = []
-  const used = [...new Set([compression, ...options.budgets.map((b) => b.compression ?? compression)])]
+  let used: Compression[] = []
   const isExcluded = options.exclude?.length ? picomatch(options.exclude, { dot: true }) : () => false
 
   return {
@@ -91,6 +104,11 @@ export default function sizeBudget(options: SizeBudgetOptions): Plugin {
 
     configResolved(resolved) {
       config = resolved
+      if (!userOptions.budgets) {
+        options = { ...userOptions, budgets: readPackageBudgets(resolved.root) }
+        validate(options)
+      }
+      used = [...new Set([compression, ...options.budgets.map((b) => b.compression ?? compression)])]
     },
 
     buildStart() {

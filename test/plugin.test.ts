@@ -185,3 +185,8 @@ it('records when and from which commit a report was made', async () => {
   expect(report.meta?.commit).toBe('abc123')
   expect(Date.parse(report.meta?.createdAt ?? '')).not.toBeNaN()
 })
+
+it('reads budgets from package.json when none are passed', async () => {
+  await writeFile(join(root, 'package.json'), JSON.stringify({ sizeBudgets: [{ path: '@js', max: '100 B' }] }))
+  await expect(build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ failOnExceed: true, reportFile: false })] })).rejects.toThrow(/@js/)
+})
