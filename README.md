@@ -80,6 +80,17 @@ sizeBudget({
   ⚠ date-fns is bundled 2 times: node_modules/date-fns, node_modules/chart/node_modules/date-fns
 ```
 
+## Отчёты
+
+| Опция | Файл |
+|---|---|
+| `reportFile` | JSON для сравнения и CLI (по умолчанию `size-report.json`) |
+| `markdownFile` | Markdown для комментария к PR, например через `marocchino/sticky-pull-request-comment` |
+| `htmlFile` | Самодостаточная HTML-страница с полосками заполнения |
+| `$GITHUB_STEP_SUMMARY` | Таблица в саммари job-а, пишется автоматически |
+
+В GitHub Actions превышения также выводятся аннотациями `::error` / `::warning`. Локально плагин помнит прошлую сборку и показывает изменения: `(+1.20 kB since last build)`.
+
 ## Установка
 
 ```bash
