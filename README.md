@@ -110,6 +110,16 @@ export default defineConfig({ plugins: [sizeBudget({ budgets: fromLighthouse(bud
 
 `script` → `@js`, `stylesheet` → `@css`, `image` → `@images`, `font` → `@fonts`, `total` → все файлы (значения в KiB, как в Lighthouse).
 
+## Бюджеты в package.json
+
+```json
+{
+  "sizeBudgets": [{ "path": "@initial", "max": "170 kB" }]
+}
+```
+
+Если `budgets` не переданы в плагин, они берутся отсюда. Удобно в монорепозитории: у каждого пакета свои лимиты.
+
 ## Установка
 
 ```bash
