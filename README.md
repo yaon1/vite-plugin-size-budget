@@ -91,6 +91,14 @@ sizeBudget({
 
 В GitHub Actions превышения также выводятся аннотациями `::error` / `::warning`. Локально плагин помнит прошлую сборку и показывает изменения: `(+1.20 kB since last build)`.
 
+## CLI
+
+```bash
+npx size-budget compare base.json size-report.json > comment.md
+npx size-budget check size-report.json      # код выхода 1, если есть превышения
+npx size-budget html size-report.json > size.html
+```
+
 ## Установка
 
 ```bash
