@@ -99,6 +99,17 @@ npx size-budget check size-report.json      # код выхода 1, если е
 npx size-budget html size-report.json > size.html
 ```
 
+## Один budget.json для Lighthouse и сборки
+
+```ts
+import budgets from './budget.json' with { type: 'json' }
+import sizeBudget, { fromLighthouse } from 'vite-plugin-size-budget'
+
+export default defineConfig({ plugins: [sizeBudget({ budgets: fromLighthouse(budgets) })] })
+```
+
+`script` → `@js`, `stylesheet` → `@css`, `image` → `@images`, `font` → `@fonts`, `total` → все файлы (значения в KiB, как в Lighthouse).
+
 ## Установка
 
 ```bash
