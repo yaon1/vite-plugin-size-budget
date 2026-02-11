@@ -145,6 +145,17 @@ npm i -D vite-plugin-size-budget
 
 Размеры понимают единицы `B`, `kB`, `KiB`, `MB`, `MiB`. Для срочного деплоя проверки можно пропустить: `SIZE_BUDGET_SKIP=1 vite build`.
 
+## Программный API
+
+Те же блоки доступны для своих инструментов, например для проверки не-Vite сборки:
+
+```ts
+import { measure, evaluate, toMarkdown } from 'vite-plugin-size-budget'
+
+const sizes = files.map((f) => measure(f.name, f.contents))
+const budgets = evaluate(sizes, [{ path: '**/*.js', max: '200 kB' }], 'brotli')
+```
+
 ## Лицензия
 
 MIT
