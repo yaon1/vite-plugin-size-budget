@@ -128,16 +128,22 @@ npm i -D vite-plugin-size-budget
 
 ## Опции
 
-| Опция           | По умолчанию       |                                                                                               |
-| --------------- | ------------------ | --------------------------------------------------------------------------------------------- |
-| `budgets`       | —                  | `{ path: glob, max: '150 kB' \| байты, compression? }[]`; проверяется сумма подходящих файлов |
-| `compression`   | `'gzip'`           | `'none' \| 'gzip' \| 'brotli'`                                                                |
-| `failOnExceed`  | `true` в CI        | Иначе только предупреждение                                                                   |
-| `reportFile`    | `size-report.json` | Путь JSON-отчёта, `false` отключает его                                                       |
-| `baseline`      | —                  | Предыдущий отчёт для сравнения                                                                |
-| `githubSummary` | `true`             | Писать таблицу в `$GITHUB_STEP_SUMMARY`                                                       |
+| Опция | По умолчанию | |
+|---|---|---|
+| `budgets` | из `package.json` | `{ path, max, compression?, maxFile?, maxIncrease? }[]`; `path` — glob или группа |
+| `compression` | `'gzip'` | `'none' \| 'gzip' \| 'brotli' \| 'zstd'` (zstd на Node 22.15+) |
+| `failOnExceed` | `true` в CI | Иначе только предупреждение |
+| `warnAt` | `0.9` | Доля лимита, после которой бюджет помечается предупреждением |
+| `baseline` | — | Предыдущий JSON-отчёт для сравнения и `maxIncrease` |
+| `exclude` | — | Glob-шаблоны файлов, которые не учитываются |
+| `reportFile` | `size-report.json` | JSON-отчёт, `false` отключает |
+| `markdownFile` | — | Markdown-отчёт для PR |
+| `htmlFile` | — | HTML-отчёт |
+| `name` | — | Подпись сборки в отчётах |
+| `githubSummary` | `true` | Писать таблицу в `$GITHUB_STEP_SUMMARY` |
+| `compareWithLast` | `true` вне CI | Показывать изменения относительно прошлой локальной сборки |
 
-Размеры понимают единицы `B`, `kB`, `KiB`, `MB`, `MiB`.
+Размеры понимают единицы `B`, `kB`, `KiB`, `MB`, `MiB`. Для срочного деплоя проверки можно пропустить: `SIZE_BUDGET_SKIP=1 vite build`.
 
 ## Лицензия
 
