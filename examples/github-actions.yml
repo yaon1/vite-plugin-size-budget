@@ -1,0 +1,39 @@
+# Full PR workflow: compare against main, post a sticky comment, keep main's report as the baseline.
+name: Bundle size
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+
+      - name: Download main's report
+        if: github.event_name == 'pull_request'
+        uses: dawidd6/action-download-artifact@v6
+        with: { workflow: size.yml, branch: main, name: size-report, path: baseline }
+        continue-on-error: true
+
+      # vite.config.ts: sizeBudget({ baseline: 'baseline/size-report.json', markdownFile: 'size.md', ... })
+      - run: npm run build
+
+      - name: Comment on the PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with: { header: bundle-size, path: size.md }
+
+      - name: Keep the report from main
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with: { name: size-report, path: size-report.json }
