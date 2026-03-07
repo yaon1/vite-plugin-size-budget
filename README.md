@@ -145,6 +145,11 @@ npm i -D vite-plugin-size-budget
 
 Размеры понимают единицы `B`, `kB`, `KiB`, `MB`, `MiB`. Для срочного деплоя проверки можно пропустить: `SIZE_BUDGET_SKIP=1 vite build`.
 
+## Примеры
+
+- [Workflow GitHub Actions с комментарием в PR](examples/github-actions.yml)
+- [SPA](examples/spa.vite.config.ts), [многостраничное приложение](examples/mpa.vite.config.ts), [библиотека](examples/library.vite.config.ts)
+
 ## Программный API
 
 Те же блоки доступны для своих инструментов, например для проверки не-Vite сборки:
