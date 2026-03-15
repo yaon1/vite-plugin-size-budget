@@ -4,7 +4,7 @@ import globals from 'globals'
 import ts from 'typescript-eslint'
 
 export default ts.config(
-  { ignores: ['dist', 'coverage'] },
+  { ignores: ['dist', 'coverage', 'examples'] },
   js.configs.recommended,
   ...ts.configs.recommended,
   { languageOptions: { globals: globals.node } },
