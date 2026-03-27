@@ -190,3 +190,10 @@ it('reads budgets from package.json when none are passed', async () => {
   await writeFile(join(root, 'package.json'), JSON.stringify({ sizeBudgets: [{ path: '@js', max: '100 B' }] }))
   await expect(build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ failOnExceed: true, reportFile: false })] })).rejects.toThrow(/@js/)
 })
+
+it('warns about globs that match nothing', async () => {
+  const messages: string[] = []
+  const customLogger = { info: () => {}, warn: (m: string) => messages.push(m), warnOnce: () => {}, error: () => {}, clearScreen: () => {}, hasErrorLogged: () => false, hasWarned: false }
+  await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: 'asets/*.js', max: '1 MB' }], reportFile: false })] })
+  expect(messages.some((m) => m.includes('asets/*.js matched no files'))).toBe(true)
+})

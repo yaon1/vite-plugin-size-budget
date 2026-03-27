@@ -187,6 +187,9 @@ export default function sizeBudget(userOptions: SizeBudgetOptions = {}): Plugin 
       const summary = process.env.GITHUB_STEP_SUMMARY
       if (summary && options.githubSummary !== false) await appendFile(summary, markdown)
 
+      for (const b of report.budgets) {
+        if (b.files.length === 0 && !b.path.startsWith('@')) config.logger.warn(`  ? ${b.path} matched no files — check the glob`)
+      }
       const width = Math.max(...report.budgets.map((b) => b.path.length))
       for (const b of report.budgets) {
         const previous = last?.budgets.find((p) => p.path === b.path)?.total
