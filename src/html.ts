@@ -37,6 +37,12 @@ th{color:var(--muted);font-weight:600}.bar{width:35%}.bar span{display:block;hei
 <h1>${escape(title)}</h1>
 <h2>Budgets (${report.compression})</h2>
 <table><tr><th>Budget</th><th>Size</th><th></th><th></th></tr>${budgets}</table>
+${
+  report.contributors?.length
+    ? `<h2>Largest contributors</h2><table><tr><th>Module</th><th>Minified</th></tr>${report.contributors.map((c) => `<tr><td><code>${escape(c.name)}</code></td><td>${formatBytes(c.bytes)}</td></tr>`).join('')}</table>`
+    : ''
+}
+${report.duplicates?.length ? `<p><strong>Bundled more than once:</strong> ${report.duplicates.map((d) => `<code>${escape(d.name)}</code>`).join(', ')}</p>` : ''}
 <h2>Files</h2>
 <table><tr><th>File</th><th>Raw</th><th>${report.compression}</th><th></th></tr>${rows}</table>
 </main></body></html>
