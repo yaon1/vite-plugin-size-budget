@@ -35,6 +35,8 @@ export interface SizeBudgetOptions {
   htmlFile?: string
   /** Also write the markdown report to this file, e.g. for a sticky PR comment action. */
   markdownFile?: string
+  /** Hide per-file changes smaller than this from the diff table. Default: 50 B. */
+  minChange?: string | number
   /** Label for this build in the summary when several builds report into one job. */
   name?: string
   /** Append a markdown table to $GITHUB_STEP_SUMMARY when present. Default: true. */
@@ -173,7 +175,7 @@ export default function sizeBudget(userOptions: SizeBudgetOptions = {}): Plugin 
         await writeFile(file, JSON.stringify(report, null, 2))
       }
 
-      const markdown = toMarkdown(report, baseline, options.name)
+      const markdown = toMarkdown(report, baseline, options.name, parseSize(options.minChange ?? 50))
       if (options.markdownFile) {
         const file = resolve(config.root, options.markdownFile)
         await mkdir(dirname(file), { recursive: true })
