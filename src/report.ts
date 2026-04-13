@@ -29,7 +29,7 @@ function delta(current: number, previous: number | undefined): string {
   return `${diff > 0 ? '+' : ''}${formatBytes(diff)}${pct}`
 }
 
-export function toMarkdown(report: Report, baseline?: Report, name?: string): string {
+export function toMarkdown(report: Report, baseline?: Report, name?: string, minChange = 0): string {
   const previousBudget = new Map(baseline?.budgets.map((b) => [b.path, b.total]))
   const lines = [
     name ? `### Bundle size budgets — ${name}` : '### Bundle size budgets',
@@ -59,7 +59,8 @@ export function toMarkdown(report: Report, baseline?: Report, name?: string): st
     const before = new Map(baseline.files.map((f) => [stableName(f.file), sizeOf(f, key)]))
     const changed = report.files
       .map((f) => ({ name: stableName(f.file), size: sizeOf(f, key), prev: before.get(stableName(f.file)) }))
-      .filter((f) => f.prev !== f.size)
+      // Hide noise: files whose size moved by less than minChange bytes.
+      .filter((f) => f.prev === undefined || Math.abs(f.size - f.prev) > minChange)
       .sort((a, b) => Math.abs(b.size - (b.prev ?? 0)) - Math.abs(a.size - (a.prev ?? 0)))
       .slice(0, 10)
     if (changed.length > 0) {

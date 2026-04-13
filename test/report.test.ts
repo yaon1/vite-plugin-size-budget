@@ -70,3 +70,11 @@ it('adds contributors and duplicate packages', () => {
   expect(md).toContain('| `date-fns` | 135.00 kB |')
   expect(md).toContain('**Duplicate packages:** `date-fns` ×2')
 })
+
+it('hides file changes below minChange', () => {
+  const baseline: Report = { version: 1, compression: 'gzip', files: [file('assets/a-AAAAAAAA.js', 1000), file('assets/b-AAAAAAAA.js', 1000)], budgets: [] }
+  const current: Report = { version: 1, compression: 'gzip', files: [file('assets/a-BBBBBBBB.js', 1010), file('assets/b-BBBBBBBB.js', 3000)], budgets: [] }
+  const md = toMarkdown(current, baseline, undefined, 100)
+  expect(md).toContain('assets/b.js')
+  expect(md).not.toContain('assets/a.js')
+})
