@@ -35,7 +35,7 @@ it('renders budgets with deltas and changed files', () => {
     |---|---:|---:|---:|:-:|
     | \`assets/*.js\` (gzip) | 55.00 kB | 50.00 kB | +15.00 kB (+37.5%) | ❌ |
 
-    **Total (gzip):** 55.00 kB (+15.00 kB (+37.5%))
+    **Total (gzip):** 55.00 kB, +15.00 kB (+37.5%)
 
     <details><summary>Changed files (gzip)</summary>
 
