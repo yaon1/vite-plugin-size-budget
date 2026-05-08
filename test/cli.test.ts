@@ -47,3 +47,16 @@ it('renders HTML from a report', async () => {
   expect(code).toBe(0)
   expect(html).toContain('<h1>Bundle size report</h1>')
 })
+
+it('treats warnings as failures with --strict', async () => {
+  const report = await write({ version: 1, compression: 'gzip', files: [], budgets: [{ ...budget(95_000), warning: true }] })
+  expect((await run(['check', report]))[0]).toBe(0)
+  expect((await run(['check', '--strict', report]))[0]).toBe(1)
+})
+
+it('converts a Lighthouse budget file', async () => {
+  const file = join(await mkdtemp(join(tmpdir(), 'lh-')), 'budget.json')
+  await writeFile(file, JSON.stringify([{ resourceSizes: [{ resourceType: 'script', budget: 100 }] }]))
+  const [code, out] = await run(['lighthouse', file])
+  expect([code, JSON.parse(out)]).toEqual([0, [{ path: '@js', max: 102_400, compression: 'gzip' }]])
+})
