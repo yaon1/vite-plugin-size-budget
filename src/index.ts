@@ -7,7 +7,7 @@ import { evaluate, type Budget } from './budget.js'
 import { duplicatePackages, topContributors, type ModuleLike } from './modules.js'
 import { toHtml } from './html.js'
 import { entryGroups, initialFiles, lazyFiles, typeGroups, type OutputAssetLike, type OutputChunkLike } from './graph.js'
-import { measure, type Compression, type FileSize } from './measure.js'
+import { createMeasureCache, type Compression, type FileSize } from './measure.js'
 import { toMarkdown, type Report } from './report.js'
 import { formatBytes, parseSize } from './size.js'
 
@@ -97,6 +97,7 @@ export default function sizeBudget(userOptions: SizeBudgetOptions = {}): Plugin 
   let entries: Record<string, string[]> = {}
   let chunks: { modules: Record<string, ModuleLike> }[] = []
   let used: Compression[] = []
+  const measure = createMeasureCache()
   const isExcluded = options.exclude?.length ? picomatch(options.exclude, { dot: true }) : () => false
 
   return {

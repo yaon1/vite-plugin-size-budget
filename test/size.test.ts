@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { measure, zstdAvailable } from '../src/measure.js'
+import { createMeasureCache, measure, zstdAvailable } from '../src/measure.js'
 import { formatBytes, parseSize } from '../src/size.js'
 
 describe('parseSize', () => {
@@ -39,4 +39,11 @@ describe('parseSize edge cases', () => {
 it('skips brotli when no budget needs it', () => {
   const size = measure('a.js', 'z'.repeat(5000), ['gzip'])
   expect(size.brotli).toBe(size.gzip)
+})
+
+it('reuses measurements for unchanged content', () => {
+  const cached = createMeasureCache()
+  const a = cached('a-1.js', 'q'.repeat(1000), ['gzip'])
+  const b = cached('a-2.js', 'q'.repeat(1000), ['gzip'])
+  expect(b).toEqual({ ...a, file: 'a-2.js' })
 })

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import * as zlib from 'node:zlib'
 import { brotliCompressSync, constants, gzipSync } from 'node:zlib'
 
@@ -35,4 +36,23 @@ export function measure(file: string, content: string | Uint8Array, compressions
   const brotli = compressions.includes('brotli') ? brotliCompressSync(buffer, { params: { [constants.BROTLI_PARAM_QUALITY]: 11 } }).byteLength : gzip
   const zstd = compressions.includes('zstd') && zstdCompress ? zstdCompress(buffer).byteLength : gzip
   return { file, none: buffer.byteLength, gzip, brotli, zstd }
+}
+
+/**
+ * Memoizes measurements by content hash, so `vite build --watch` only recompresses
+ * files that actually changed between rebuilds.
+ */
+export function createMeasureCache(limit = 2000) {
+  const cache = new Map<string, Omit<FileSize, 'file'>>()
+  return (file: string, content: string | Uint8Array, compressions: readonly Compression[]): FileSize => {
+    const key = createHash('sha1').update(content).update(compressions.join()).digest('hex')
+    let sizes = cache.get(key)
+    if (!sizes) {
+      const { file: _file, ...measured } = measure(file, content, compressions)
+      sizes = measured
+      if (cache.size >= limit) cache.delete(cache.keys().next().value!)
+      cache.set(key, sizes)
+    }
+    return { file, ...sizes }
+  }
 }
