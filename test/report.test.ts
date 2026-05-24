@@ -80,3 +80,8 @@ it('hides file changes below minChange', () => {
   expect(md).toContain('assets/b.js')
   expect(md).not.toContain('assets/a.js')
 })
+
+it('uses budget labels in the table', () => {
+  const report: Report = { version: 1, compression: 'gzip', files: [], budgets: [{ ...budget(1000), label: 'First load' }] }
+  expect(toMarkdown(report)).toContain('| First load (`assets/*.js`, gzip) |')
+})

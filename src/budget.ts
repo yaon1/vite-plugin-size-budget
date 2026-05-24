@@ -9,6 +9,8 @@ export interface Budget {
    * "@js", "@css", "@images", "@fonts", or "@entry:<name>" for one entry of a multi-page app.
    */
   path: string
+  /** Human-friendly label for logs and reports, e.g. "First load". Defaults to `path`. */
+  label?: string
   /** Limit for the sum of all matched files. */
   max: string | number
   compression?: Compression
@@ -23,6 +25,7 @@ export interface Budget {
 
 export interface BudgetResult {
   path: string
+  label?: string
   compression: Compression
   limit: number
   total: number
@@ -71,6 +74,7 @@ export function evaluate(
     }
     return {
       path: budget.path,
+      ...(budget.label ? { label: budget.label } : {}),
       compression,
       limit,
       total,

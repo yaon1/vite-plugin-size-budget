@@ -38,7 +38,7 @@ export function toMarkdown(report: Report, baseline?: Report, name?: string, min
     '|---|---:|---:|---:|:-:|',
     ...report.budgets.map(
       (b) =>
-        `| \`${b.path}\` (${b.compression}) | ${formatBytes(b.total)} | ${formatBytes(b.limit)} | ${
+        `| ${b.label ? `${b.label} (\`${b.path}\`, ${b.compression})` : `\`${b.path}\` (${b.compression})`} | ${formatBytes(b.total)} | ${formatBytes(b.limit)} | ${
           baseline ? delta(b.total, previousBudget.get(b.path)) : '—'
         } | ${!b.ok ? '❌' : b.warning ? '⚠️' : '✅'} |`,
     ),
