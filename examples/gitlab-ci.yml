@@ -1,0 +1,13 @@
+# GitLab CI: compare merge requests with the default branch's report.
+size:
+  image: node:22
+  script:
+    - npm ci
+    # vite.config.ts: sizeBudget({ baseline: process.env.SIZE_BASELINE_URL, markdownFile: 'size.md' })
+    - export SIZE_BASELINE_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/artifacts/$CI_DEFAULT_BRANCH/raw/size-report.json?job=size"
+    - npm run build
+  artifacts:
+    paths: [size-report.json, size.md]
+    reports:
+      # Shows the markdown on the merge request page.
+      annotations: size.md
