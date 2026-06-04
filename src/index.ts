@@ -20,7 +20,7 @@ export interface SizeBudgetOptions {
   failOnExceed?: boolean
   /** Where to write the JSON report, relative to the project root. `false` disables it. */
   reportFile?: string | false
-  /** A previous JSON report to diff against (e.g. downloaded from the main branch). */
+  /** A previous JSON report to diff against: a path or an http(s) URL. */
   baseline?: string
   /** Globs of output files to leave out entirely, e.g. "*.wasm" or "stats.html". */
   exclude?: string[]
@@ -57,6 +57,11 @@ export type { Report } from './report.js'
 
 async function readBaseline(path: string): Promise<Report | undefined> {
   try {
+    // A URL lets CI fetch main's report from object storage or a CDN instead of an artifact.
+    if (/^https?:\/\//.test(path)) {
+      const res = await fetch(path, { signal: AbortSignal.timeout(10_000) })
+      return res.ok ? ((await res.json()) as Report) : undefined
+    }
     return JSON.parse(await readFile(path, 'utf8')) as Report
   } catch {
     return undefined
@@ -148,7 +153,9 @@ export default function sizeBudget(userOptions: SizeBudgetOptions = {}): Plugin 
         return
       }
 
-      const baseline = options.baseline ? await readBaseline(resolve(config.root, options.baseline)) : undefined
+      const baseline = options.baseline
+        ? await readBaseline(/^https?:\/\//.test(options.baseline) ? options.baseline : resolve(config.root, options.baseline))
+        : undefined
       const report: Report = {
         version: 1,
         compression,

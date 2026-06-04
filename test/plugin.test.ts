@@ -197,3 +197,17 @@ it('warns about globs that match nothing', async () => {
   await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: 'asets/*.js', max: '1 MB' }], reportFile: false })] })
   expect(messages.some((m) => m.includes('asets/*.js matched no files'))).toBe(true)
 })
+
+it('fetches the baseline from a URL', async () => {
+  const { createServer } = await import('node:http')
+  const baselineReport: Report = { version: 1, compression: 'gzip', files: [], budgets: [{ path: '@js', compression: 'gzip', limit: 1, total: 10, files: [], ok: true, warning: false, oversized: [] }] }
+  const server = createServer((_, res) => res.end(JSON.stringify(baselineReport)))
+  await new Promise<void>((r) => server.listen(0, '127.0.0.1', r))
+  const { port } = server.address() as { port: number }
+  try {
+    await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], baseline: `http://127.0.0.1:${port}/r.json`, markdownFile: 'dist/s.md', reportFile: false })] })
+  } finally {
+    server.close()
+  }
+  expect(await readFile(join(root, 'dist/s.md'), 'utf8')).toMatch(/\| \+\d+ B \(/)
+})
