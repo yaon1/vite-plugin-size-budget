@@ -161,6 +161,17 @@ const sizes = files.map((f) => measure(f.name, f.contents))
 const budgets = evaluate(sizes, [{ path: '**/*.js', max: '200 kB' }], 'brotli')
 ```
 
+## Чем отличается от size-limit и bundlesize
+
+| | vite-plugin-size-budget | size-limit | bundlesize |
+|---|---|---|---|
+| Работает внутри сборки Vite | ✓ | отдельный шаг | отдельный шаг |
+| Начальная загрузка по графу чанков (`@initial`) | ✓ | через webpack/esbuild-плагин | — |
+| Ограничение прироста к baseline | ✓ | — | — |
+| Дубликаты пакетов и крупнейшие модули | ✓ | частично | — |
+| Отчёт в саммари / PR / HTML | ✓ | через action | статус в PR |
+| Импорт Lighthouse budget.json | ✓ | — | — |
+
 ## Лицензия
 
 MIT
