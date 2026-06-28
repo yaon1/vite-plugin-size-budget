@@ -172,6 +172,17 @@ const budgets = evaluate(sizes, [{ path: '**/*.js', max: '200 kB' }], 'brotli')
 | Отчёт в саммари / PR / HTML | ✓ | через action | статус в PR |
 | Импорт Lighthouse budget.json | ✓ | — | — |
 
+## Если что-то не так
+
+| Симптом | Решение |
+|---|---|
+| `matched no files` | Glob считается от `build.outDir`: `assets/*.js`, а не `dist/assets/*.js` |
+| `Unknown budget group` | Проверьте имя; для `@entry:<name>` имя совпадает с ключом в `rollupOptions.input` |
+| В локальной сборке не падает | По умолчанию `failOnExceed` включён только в CI; задайте `failOnExceed: true` |
+| Нет сравнения в PR | Проверьте, что артефакт с отчётом из main скачивается в путь из `baseline` |
+
+Подробнее: [как выбирать бюджеты](docs/choosing-budgets.md), [как считается @initial](docs/initial-load.md).
+
 ## Лицензия
 
 MIT
