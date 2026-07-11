@@ -60,3 +60,8 @@ it('converts a Lighthouse budget file', async () => {
   const [code, out] = await run(['lighthouse', file])
   expect([code, JSON.parse(out)]).toEqual([0, [{ path: '@js', max: 102_400, compression: 'gzip' }]])
 })
+
+it('rejects reports from an unknown version', async () => {
+  const file = await write({ version: 2 } as unknown as Report)
+  await expect(run(['check', file])).rejects.toThrow(/unsupported report version 2/)
+})
