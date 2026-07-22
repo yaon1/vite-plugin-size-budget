@@ -20,3 +20,7 @@ it('lists contributors and duplicates', () => {
   expect(html).toContain('<td><code>vue</code></td><td>50.00 kB</td>')
   expect(html).toContain('<strong>Bundled more than once:</strong> <code>lodash</code>')
 })
+
+it('renders an empty report', () => {
+  expect(toHtml({ version: 1, compression: 'brotli', files: [], budgets: [] }, 'Empty')).toContain('<title>Empty</title>')
+})
