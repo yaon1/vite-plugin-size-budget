@@ -85,3 +85,8 @@ it('uses budget labels in the table', () => {
   const report: Report = { version: 1, compression: 'gzip', files: [], budgets: [{ ...budget(1000), label: 'First load' }] }
   expect(toMarkdown(report)).toContain('| First load (`assets/*.js`, gzip) |')
 })
+
+it('links the full report when a URL is given', () => {
+  const md = toMarkdown({ version: 1, compression: 'gzip', files: [], budgets: [] }, undefined, undefined, 0, 'https://ci.example/size.html')
+  expect(md).toContain('[Full report](https://ci.example/size.html)')
+})

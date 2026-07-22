@@ -29,7 +29,7 @@ function delta(current: number, previous: number | undefined): string {
   return `${diff > 0 ? '+' : ''}${formatBytes(diff)}${pct}`
 }
 
-export function toMarkdown(report: Report, baseline?: Report, name?: string, minChange = 0): string {
+export function toMarkdown(report: Report, baseline?: Report, name?: string, minChange = 0, reportUrl?: string): string {
   const previousBudget = new Map(baseline?.budgets.map((b) => [b.path, b.total]))
   const lines = [
     name ? `### Bundle size budgets — ${name}` : '### Bundle size budgets',
@@ -83,6 +83,8 @@ export function toMarkdown(report: Report, baseline?: Report, name?: string, min
   if (report.duplicates?.length) {
     lines.push('', '**Duplicate packages:** ' + report.duplicates.map((d) => `\`${d.name}\` ×${d.paths.length}`).join(', '))
   }
+
+  if (reportUrl) lines.push('', `[Full report](${reportUrl})`)
 
   return lines.join('\n') + '\n'
 }
