@@ -65,3 +65,8 @@ it('rejects reports from an unknown version', async () => {
   const file = await write({ version: 2 } as unknown as Report)
   await expect(run(['check', file])).rejects.toThrow(/unsupported report version 2/)
 })
+
+it('labels compare output with --name', async () => {
+  const base = await write({ version: 1, compression: 'gzip', files: [], budgets: [budget(1)] })
+  expect((await run(['compare', '--name=web', base, base]))[1]).toMatch(/^### Bundle size budgets — web/)
+})

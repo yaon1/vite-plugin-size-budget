@@ -8,7 +8,7 @@ const USAGE = `Usage:
   size-budget check <report.json>               Exit 1 if any budget failed
   size-budget html <report.json>                HTML report on stdout
   size-budget lighthouse <budget.json>          Print equivalent plugin budgets
-  Options: check --strict also fails on warnings`
+  Options: check --strict also fails on warnings; compare --name=web labels the table`
 
 async function load(path: string): Promise<Report> {
   const report = JSON.parse(await readFile(path, 'utf8')) as Report
@@ -19,10 +19,11 @@ async function load(path: string): Promise<Report> {
 /** Returns [exit code, output]; kept pure so it can be tested without spawning a process. */
 export async function run(argv: string[]): Promise<[number, string]> {
   const strict = argv.includes('--strict')
-  const [command, ...files] = argv.filter((a) => a !== '--strict')
+  const nameArg = argv.find((a) => a.startsWith('--name='))
+  const [command, ...files] = argv.filter((a) => a !== '--strict' && a !== nameArg)
   if (command === 'compare' && files.length === 2) {
     const [base, head] = await Promise.all(files.map(load))
-    return [0, toMarkdown(head!, base)]
+    return [0, toMarkdown(head!, base, nameArg?.slice('--name='.length))]
   }
   if (command === 'check' && files.length === 1) {
     const report = await load(files[0]!)
