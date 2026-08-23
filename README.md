@@ -130,7 +130,7 @@ npm i -D vite-plugin-size-budget
 
 | Опция | По умолчанию | |
 |---|---|---|
-| `budgets` | из `package.json` | `{ path, max, compression?, maxFile?, maxIncrease? }[]`; `path` — glob или группа |
+| `budgets` | из `package.json` | `{ path, max, label?, compression?, maxFile?, maxIncrease? }[]`; `path` — glob или группа |
 | `compression` | `'gzip'` | `'none' \| 'gzip' \| 'brotli' \| 'zstd'` (zstd на Node 22.15+) |
 | `failOnExceed` | `true` в CI | Иначе только предупреждение |
 | `warnAt` | `0.9` | Доля лимита, после которой бюджет помечается предупреждением |
@@ -140,6 +140,8 @@ npm i -D vite-plugin-size-budget
 | `markdownFile` | — | Markdown-отчёт для PR |
 | `htmlFile` | — | HTML-отчёт |
 | `name` | — | Подпись сборки в отчётах |
+| `minChange` | `50 B` | Изменения файлов меньше этого не попадают в таблицу |
+| `reportUrl` | — | Ссылка на полный отчёт в конце markdown |
 | `githubSummary` | `true` | Писать таблицу в `$GITHUB_STEP_SUMMARY` |
 | `compareWithLast` | `true` вне CI | Показывать изменения относительно прошлой локальной сборки |
 
