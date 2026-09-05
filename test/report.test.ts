@@ -90,3 +90,9 @@ it('links the full report when a URL is given', () => {
   const md = toMarkdown({ version: 1, compression: 'gzip', files: [], budgets: [] }, undefined, undefined, 0, 'https://ci.example/size.html')
   expect(md).toContain('[Full report](https://ci.example/size.html)')
 })
+
+it('escapes file names inside markdown tables', () => {
+  const report: Report = { version: 1, compression: 'gzip', files: [file('assets/a|b<img>-BBBBBBBB.js', 5000)], budgets: [] }
+  const base: Report = { version: 1, compression: 'gzip', files: [], budgets: [] }
+  expect(toMarkdown(report, base)).toContain('assets/a\\|b&lt;img&gt;.js')
+})

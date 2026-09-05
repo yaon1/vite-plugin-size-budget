@@ -21,6 +21,11 @@ export function stableName(file: string): string {
   return file.replace(/-[\w-]{8}(?=\.[a-z0-9]+$)/i, '')
 }
 
+/** File names go into markdown tables; neutralize characters that would break or inject markup. */
+function cell(text: string): string {
+  return text.replace(/[|`<>]/g, (c) => ({ '|': '\\|', '`': "'", '<': '&lt;', '>': '&gt;' })[c]!)
+}
+
 function delta(current: number, previous: number | undefined): string {
   if (previous === undefined) return 'new'
   const diff = current - previous
@@ -69,14 +74,14 @@ export function toMarkdown(report: Report, baseline?: Report, name?: string, min
       .slice(0, 10)
     if (changed.length > 0) {
       lines.push('', `<details><summary>Changed files (${key})</summary>`, '', '| File | Size | Change |', '|---|---:|---:|')
-      lines.push(...changed.map((f) => `| \`${f.name}\` | ${formatBytes(f.size)} | ${delta(f.size, f.prev)} |`))
+      lines.push(...changed.map((f) => `| \`${cell(f.name)}\` | ${formatBytes(f.size)} | ${delta(f.size, f.prev)} |`))
       lines.push('', '</details>')
     }
   }
 
   if (report.contributors?.length) {
     lines.push('', '<details><summary>Largest contributors (minified)</summary>', '', '| Module | Size |', '|---|---:|')
-    lines.push(...report.contributors.map((c) => `| \`${c.name}\` | ${formatBytes(c.bytes)} |`))
+    lines.push(...report.contributors.map((c) => `| \`${cell(c.name)}\` | ${formatBytes(c.bytes)} |`))
     lines.push('', '</details>')
   }
 
