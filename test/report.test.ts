@@ -74,8 +74,18 @@ it('adds contributors and duplicate packages', () => {
 })
 
 it('hides file changes below minChange', () => {
-  const baseline: Report = { version: 1, compression: 'gzip', files: [file('assets/a-AAAAAAAA.js', 1000), file('assets/b-AAAAAAAA.js', 1000)], budgets: [] }
-  const current: Report = { version: 1, compression: 'gzip', files: [file('assets/a-BBBBBBBB.js', 1010), file('assets/b-BBBBBBBB.js', 3000)], budgets: [] }
+  const baseline: Report = {
+    version: 1,
+    compression: 'gzip',
+    files: [file('assets/a-AAAAAAAA.js', 1000), file('assets/b-AAAAAAAA.js', 1000)],
+    budgets: [],
+  }
+  const current: Report = {
+    version: 1,
+    compression: 'gzip',
+    files: [file('assets/a-BBBBBBBB.js', 1010), file('assets/b-BBBBBBBB.js', 3000)],
+    budgets: [],
+  }
   const md = toMarkdown(current, baseline, undefined, 100)
   expect(md).toContain('assets/b.js')
   expect(md).not.toContain('assets/a.js')
@@ -87,7 +97,13 @@ it('uses budget labels in the table', () => {
 })
 
 it('links the full report when a URL is given', () => {
-  const md = toMarkdown({ version: 1, compression: 'gzip', files: [], budgets: [] }, undefined, undefined, 0, 'https://ci.example/size.html')
+  const md = toMarkdown(
+    { version: 1, compression: 'gzip', files: [], budgets: [] },
+    undefined,
+    undefined,
+    0,
+    'https://ci.example/size.html',
+  )
   expect(md).toContain('[Full report](https://ci.example/size.html)')
 })
 

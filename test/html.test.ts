@@ -16,7 +16,14 @@ it('renders budgets with state and escapes file names', () => {
 })
 
 it('lists contributors and duplicates', () => {
-  const html = toHtml({ version: 1, compression: 'gzip', files: [], budgets: [], contributors: [{ name: 'vue', bytes: 50_000 }], duplicates: [{ name: 'lodash', paths: ['a', 'b'] }] })
+  const html = toHtml({
+    version: 1,
+    compression: 'gzip',
+    files: [],
+    budgets: [],
+    contributors: [{ name: 'vue', bytes: 50_000 }],
+    duplicates: [{ name: 'lodash', paths: ['a', 'b'] }],
+  })
   expect(html).toContain('<td><code>vue</code></td><td>50.00 kB</td>')
   expect(html).toContain('<strong>Bundled more than once:</strong> <code>lodash</code>')
 })

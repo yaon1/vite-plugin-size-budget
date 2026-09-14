@@ -51,7 +51,10 @@ export function toMarkdown(report: Report, baseline?: Report, name?: string, min
 
   const totalNow = report.files.reduce((sum, f) => sum + sizeOf(f, report.compression), 0)
   const totalBefore = baseline?.files.reduce((sum, f) => sum + sizeOf(f, report.compression), 0)
-  lines.push('', `**Total (${report.compression}):** ${formatBytes(totalNow)}${totalBefore === undefined ? '' : `, ${delta(totalNow, totalBefore)}`}`)
+  lines.push(
+    '',
+    `**Total (${report.compression}):** ${formatBytes(totalNow)}${totalBefore === undefined ? '' : `, ${delta(totalNow, totalBefore)}`}`,
+  )
 
   const grew = report.budgets
     .filter((b) => b.increase)

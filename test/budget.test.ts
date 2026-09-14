@@ -36,7 +36,9 @@ it('targets named groups like @initial', () => {
     initial: ['assets/index-abc.js', 'assets/index-abc.css'],
   })
   expect(initial).toMatchObject({ total: 45_000, ok: true, files: ['assets/index-abc.js', 'assets/index-abc.css'] })
-  expect(() => evaluate(sizes, [{ path: '@nope', max: 1 }], 'gzip', { initial: [] })).toThrow('Unknown budget group "@nope". Available: @initial')
+  expect(() => evaluate(sizes, [{ path: '@nope', max: 1 }], 'gzip', { initial: [] })).toThrow(
+    'Unknown budget group "@nope". Available: @initial',
+  )
 })
 
 it('warns when a budget is nearly used up', () => {

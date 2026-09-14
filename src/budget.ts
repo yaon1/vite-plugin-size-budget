@@ -54,7 +54,9 @@ export function evaluate(
     const compression = budget.compression ?? defaultCompression
     const group = budget.path.startsWith('@') ? groups[budget.path.slice(1)] : undefined
     if (budget.path.startsWith('@') && !group) {
-      const known = Object.keys(groups).map((g) => `@${g}`).join(', ')
+      const known = Object.keys(groups)
+        .map((g) => `@${g}`)
+        .join(', ')
       throw new Error(`Unknown budget group "${budget.path}". Available: ${known || 'none'}`)
     }
     const isMatch = group ? (file: string) => group.includes(file) : picomatch(budget.path, { dot: true })

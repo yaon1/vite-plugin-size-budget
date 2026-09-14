@@ -30,10 +30,16 @@ export function zstdAvailable(): boolean {
  * the slowest step, so callers pass only what their budgets use; gzip is always
  * included because reports and diffs fall back to it.
  */
-export function measure(file: string, content: string | Uint8Array, compressions: readonly Compression[] = ['gzip', 'brotli', 'zstd']): FileSize {
+export function measure(
+  file: string,
+  content: string | Uint8Array,
+  compressions: readonly Compression[] = ['gzip', 'brotli', 'zstd'],
+): FileSize {
   const buffer = typeof content === 'string' ? Buffer.from(content) : Buffer.from(content.buffer, content.byteOffset, content.byteLength)
   const gzip = gzipSync(buffer, { level: 9 }).byteLength
-  const brotli = compressions.includes('brotli') ? brotliCompressSync(buffer, { params: { [constants.BROTLI_PARAM_QUALITY]: 11 } }).byteLength : gzip
+  const brotli = compressions.includes('brotli')
+    ? brotliCompressSync(buffer, { params: { [constants.BROTLI_PARAM_QUALITY]: 11 } }).byteLength
+    : gzip
   const zstd = compressions.includes('zstd') && zstdCompress ? zstdCompress(buffer).byteLength : gzip
   return { file, none: buffer.byteLength, gzip, brotli, zstd }
 }

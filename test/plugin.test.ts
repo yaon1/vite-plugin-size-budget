@@ -188,24 +188,56 @@ it('records when and from which commit a report was made', async () => {
 
 it('reads budgets from package.json when none are passed', async () => {
   await writeFile(join(root, 'package.json'), JSON.stringify({ sizeBudgets: [{ path: '@js', max: '100 B' }] }))
-  await expect(build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ failOnExceed: true, reportFile: false })] })).rejects.toThrow(/@js/)
+  await expect(
+    build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ failOnExceed: true, reportFile: false })] }),
+  ).rejects.toThrow(/@js/)
 })
 
 it('warns about globs that match nothing', async () => {
   const messages: string[] = []
-  const customLogger = { info: () => {}, warn: (m: string) => messages.push(m), warnOnce: () => {}, error: () => {}, clearScreen: () => {}, hasErrorLogged: () => false, hasWarned: false }
-  await build({ root, customLogger, build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: 'asets/*.js', max: '1 MB' }], reportFile: false })] })
+  const customLogger = {
+    info: () => {},
+    warn: (m: string) => messages.push(m),
+    warnOnce: () => {},
+    error: () => {},
+    clearScreen: () => {},
+    hasErrorLogged: () => false,
+    hasWarned: false,
+  }
+  await build({
+    root,
+    customLogger,
+    build: { outDir: 'dist' },
+    plugins: [sizeBudget({ budgets: [{ path: 'asets/*.js', max: '1 MB' }], reportFile: false })],
+  })
   expect(messages.some((m) => m.includes('asets/*.js matched no files'))).toBe(true)
 })
 
 it('fetches the baseline from a URL', async () => {
   const { createServer } = await import('node:http')
-  const baselineReport: Report = { version: 1, compression: 'gzip', files: [], budgets: [{ path: '@js', compression: 'gzip', limit: 1, total: 10, files: [], ok: true, warning: false, oversized: [] }] }
+  const baselineReport: Report = {
+    version: 1,
+    compression: 'gzip',
+    files: [],
+    budgets: [{ path: '@js', compression: 'gzip', limit: 1, total: 10, files: [], ok: true, warning: false, oversized: [] }],
+  }
   const server = createServer((_, res) => res.end(JSON.stringify(baselineReport)))
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r))
   const { port } = server.address() as { port: number }
   try {
-    await build({ root, logLevel: 'silent', build: { outDir: 'dist' }, plugins: [sizeBudget({ budgets: [{ path: '@js', max: '1 MB' }], baseline: `http://127.0.0.1:${port}/r.json`, markdownFile: 'dist/s.md', reportFile: false })] })
+    await build({
+      root,
+      logLevel: 'silent',
+      build: { outDir: 'dist' },
+      plugins: [
+        sizeBudget({
+          budgets: [{ path: '@js', max: '1 MB' }],
+          baseline: `http://127.0.0.1:${port}/r.json`,
+          markdownFile: 'dist/s.md',
+          reportFile: false,
+        }),
+      ],
+    })
   } finally {
     server.close()
   }

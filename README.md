@@ -47,17 +47,17 @@ export default defineConfig({
 
 Вместо glob можно указать группу:
 
-| Группа | Что входит |
-|---|---|
-| `@initial` | Всё, что браузер скачивает до старта приложения: entry-чанки, их статические импорты и CSS |
-| `@lazy` | Чанки, которые грузятся только через `import()` |
-| `@entry:<name>` | Начальная загрузка конкретной точки входа (для многостраничных приложений) |
-| `@js`, `@css`, `@images`, `@fonts` | Файлы по типу |
+| Группа                             | Что входит                                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| `@initial`                         | Всё, что браузер скачивает до старта приложения: entry-чанки, их статические импорты и CSS |
+| `@lazy`                            | Чанки, которые грузятся только через `import()`                                            |
+| `@entry:<name>`                    | Начальная загрузка конкретной точки входа (для многостраничных приложений)                 |
+| `@js`, `@css`, `@images`, `@fonts` | Файлы по типу                                                                              |
 
 ```ts
 sizeBudget({
   budgets: [
-    { path: '@initial', max: '170 kB' },        // то, чего пользователь ждёт на первом экране
+    { path: '@initial', max: '170 kB' }, // то, чего пользователь ждёт на первом экране
     { path: '@lazy', max: '400 kB', maxFile: '80 kB' },
     { path: '@entry:admin', max: '300 kB' },
   ],
@@ -82,12 +82,12 @@ sizeBudget({
 
 ## Отчёты
 
-| Опция | Файл |
-|---|---|
-| `reportFile` | JSON для сравнения и CLI (по умолчанию `size-report.json`) |
-| `markdownFile` | Markdown для комментария к PR, например через `marocchino/sticky-pull-request-comment` |
-| `htmlFile` | Самодостаточная HTML-страница с полосками заполнения |
-| `$GITHUB_STEP_SUMMARY` | Таблица в саммари job-а, пишется автоматически |
+| Опция                  | Файл                                                                                   |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| `reportFile`           | JSON для сравнения и CLI (по умолчанию `size-report.json`)                             |
+| `markdownFile`         | Markdown для комментария к PR, например через `marocchino/sticky-pull-request-comment` |
+| `htmlFile`             | Самодостаточная HTML-страница с полосками заполнения                                   |
+| `$GITHUB_STEP_SUMMARY` | Таблица в саммари job-а, пишется автоматически                                         |
 
 В GitHub Actions превышения также выводятся аннотациями `::error` / `::warning`. Локально плагин помнит прошлую сборку и показывает изменения: `(+1.20 kB since last build)`.
 
@@ -128,22 +128,22 @@ npm i -D vite-plugin-size-budget
 
 ## Опции
 
-| Опция | По умолчанию | |
-|---|---|---|
-| `budgets` | из `package.json` | `{ path, max, label?, compression?, maxFile?, maxIncrease? }[]`; `path` — glob или группа |
-| `compression` | `'gzip'` | `'none' \| 'gzip' \| 'brotli' \| 'zstd'` (zstd на Node 22.15+) |
-| `failOnExceed` | `true` в CI | Иначе только предупреждение |
-| `warnAt` | `0.9` | Доля лимита, после которой бюджет помечается предупреждением |
-| `baseline` | — | Предыдущий JSON-отчёт для сравнения и `maxIncrease` |
-| `exclude` | — | Glob-шаблоны файлов, которые не учитываются |
-| `reportFile` | `size-report.json` | JSON-отчёт, `false` отключает |
-| `markdownFile` | — | Markdown-отчёт для PR |
-| `htmlFile` | — | HTML-отчёт |
-| `name` | — | Подпись сборки в отчётах |
-| `minChange` | `50 B` | Изменения файлов меньше этого не попадают в таблицу |
-| `reportUrl` | — | Ссылка на полный отчёт в конце markdown |
-| `githubSummary` | `true` | Писать таблицу в `$GITHUB_STEP_SUMMARY` |
-| `compareWithLast` | `true` вне CI | Показывать изменения относительно прошлой локальной сборки |
+| Опция             | По умолчанию       |                                                                                           |
+| ----------------- | ------------------ | ----------------------------------------------------------------------------------------- |
+| `budgets`         | из `package.json`  | `{ path, max, label?, compression?, maxFile?, maxIncrease? }[]`; `path` — glob или группа |
+| `compression`     | `'gzip'`           | `'none' \| 'gzip' \| 'brotli' \| 'zstd'` (zstd на Node 22.15+)                            |
+| `failOnExceed`    | `true` в CI        | Иначе только предупреждение                                                               |
+| `warnAt`          | `0.9`              | Доля лимита, после которой бюджет помечается предупреждением                              |
+| `baseline`        | —                  | Предыдущий JSON-отчёт для сравнения и `maxIncrease`                                       |
+| `exclude`         | —                  | Glob-шаблоны файлов, которые не учитываются                                               |
+| `reportFile`      | `size-report.json` | JSON-отчёт, `false` отключает                                                             |
+| `markdownFile`    | —                  | Markdown-отчёт для PR                                                                     |
+| `htmlFile`        | —                  | HTML-отчёт                                                                                |
+| `name`            | —                  | Подпись сборки в отчётах                                                                  |
+| `minChange`       | `50 B`             | Изменения файлов меньше этого не попадают в таблицу                                       |
+| `reportUrl`       | —                  | Ссылка на полный отчёт в конце markdown                                                   |
+| `githubSummary`   | `true`             | Писать таблицу в `$GITHUB_STEP_SUMMARY`                                                   |
+| `compareWithLast` | `true` вне CI      | Показывать изменения относительно прошлой локальной сборки                                |
 
 Размеры понимают единицы `B`, `kB`, `KiB`, `MB`, `MiB`. Для срочного деплоя проверки можно пропустить: `SIZE_BUDGET_SKIP=1 vite build`.
 
@@ -165,23 +165,23 @@ const budgets = evaluate(sizes, [{ path: '**/*.js', max: '200 kB' }], 'brotli')
 
 ## Чем отличается от size-limit и bundlesize
 
-| | vite-plugin-size-budget | size-limit | bundlesize |
-|---|---|---|---|
-| Работает внутри сборки Vite | ✓ | отдельный шаг | отдельный шаг |
-| Начальная загрузка по графу чанков (`@initial`) | ✓ | через webpack/esbuild-плагин | — |
-| Ограничение прироста к baseline | ✓ | — | — |
-| Дубликаты пакетов и крупнейшие модули | ✓ | частично | — |
-| Отчёт в саммари / PR / HTML | ✓ | через action | статус в PR |
-| Импорт Lighthouse budget.json | ✓ | — | — |
+|                                                 | vite-plugin-size-budget | size-limit                   | bundlesize    |
+| ----------------------------------------------- | ----------------------- | ---------------------------- | ------------- |
+| Работает внутри сборки Vite                     | ✓                       | отдельный шаг                | отдельный шаг |
+| Начальная загрузка по графу чанков (`@initial`) | ✓                       | через webpack/esbuild-плагин | —             |
+| Ограничение прироста к baseline                 | ✓                       | —                            | —             |
+| Дубликаты пакетов и крупнейшие модули           | ✓                       | частично                     | —             |
+| Отчёт в саммари / PR / HTML                     | ✓                       | через action                 | статус в PR   |
+| Импорт Lighthouse budget.json                   | ✓                       | —                            | —             |
 
 ## Если что-то не так
 
-| Симптом | Решение |
-|---|---|
-| `matched no files` | Glob считается от `build.outDir`: `assets/*.js`, а не `dist/assets/*.js` |
-| `Unknown budget group` | Проверьте имя; для `@entry:<name>` имя совпадает с ключом в `rollupOptions.input` |
-| В локальной сборке не падает | По умолчанию `failOnExceed` включён только в CI; задайте `failOnExceed: true` |
-| Нет сравнения в PR | Проверьте, что артефакт с отчётом из main скачивается в путь из `baseline` |
+| Симптом                      | Решение                                                                           |
+| ---------------------------- | --------------------------------------------------------------------------------- |
+| `matched no files`           | Glob считается от `build.outDir`: `assets/*.js`, а не `dist/assets/*.js`          |
+| `Unknown budget group`       | Проверьте имя; для `@entry:<name>` имя совпадает с ключом в `rollupOptions.input` |
+| В локальной сборке не падает | По умолчанию `failOnExceed` включён только в CI; задайте `failOnExceed: true`     |
+| Нет сравнения в PR           | Проверьте, что артефакт с отчётом из main скачивается в путь из `baseline`        |
 
 Подробнее: [как выбирать бюджеты](docs/choosing-budgets.md), [как считается @initial](docs/initial-load.md).
 
