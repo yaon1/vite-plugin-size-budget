@@ -62,3 +62,8 @@ it('fails budgets that grew more than maxIncrease against the baseline', () => {
   const [none] = evaluate(sizes, [{ path: 'assets/*.js', max: '1 MB', maxIncrease: '1%' }], 'gzip')
   expect(none?.ok).toBe(true)
 })
+
+it('keeps the warning flag off for failing budgets', () => {
+  const [over] = evaluate(sizes, [{ path: 'assets/*.js', max: '100 kB' }], 'gzip')
+  expect([over?.ok, over?.warning]).toEqual([false, false])
+})
