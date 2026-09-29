@@ -243,3 +243,9 @@ it('fetches the baseline from a URL', async () => {
   }
   expect(await readFile(join(root, 'dist/s.md'), 'utf8')).toMatch(/\| \+\d+ B \(/)
 })
+
+it('counts every compression the budgets use', async () => {
+  await run('50 kB', false)
+  const report = JSON.parse(await readFile(join(root, 'dist/size.json'), 'utf8')) as Report
+  expect(report.files[0]?.brotli).toBe(report.files[0]?.gzip) // brotli not requested, falls back
+})
