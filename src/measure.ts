@@ -54,8 +54,8 @@ export function createMeasureCache(limit = 2000) {
     const key = createHash('sha1').update(content).update(compressions.join()).digest('hex')
     let sizes = cache.get(key)
     if (!sizes) {
-      const { file: _file, ...measured } = measure(file, content, compressions)
-      sizes = measured
+      const measured = measure(file, content, compressions)
+      sizes = { none: measured.none, gzip: measured.gzip, brotli: measured.brotli, zstd: measured.zstd }
       if (cache.size >= limit) cache.delete(cache.keys().next().value!)
       cache.set(key, sizes)
     }
