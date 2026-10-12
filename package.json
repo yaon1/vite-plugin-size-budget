@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-size-budget",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fail Vite builds that exceed gzip/brotli size budgets, with diffs against a baseline and a GitHub Actions summary",
   "license": "MIT",
   "type": "module",
